@@ -194,7 +194,7 @@ export default function TutorHubPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 dark:bg-[#0a0a0a] p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 font-sans text-slate-900 dark:text-white w-full">
+    <div className="min-h-screen bg-slate-50/50 dark:bg-[var(--soft-sunken)] p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 font-sans text-slate-900 dark:text-white w-full">
       {/* Header */}
       <header>
         <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-1">
@@ -211,7 +211,7 @@ export default function TutorHubPage() {
       </header>
 
       {/* Subject Input Card */}
-      <div className="bg-white dark:bg-[#121212] rounded-2xl shadow-sm dark:shadow-black/20 border-none p-6 sm:p-8">
+      <div className="bg-white dark:bg-[var(--soft-surface)] rounded-2xl shadow-sm dark:shadow-black/20 border-none p-6 sm:p-8">
         <div className="flex items-center gap-3 mb-5">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500/20 to-indigo-500/20 flex items-center justify-center">
             <GraduationCap className="w-5 h-5 text-violet-600 dark:text-violet-400" />
@@ -236,7 +236,7 @@ export default function TutorHubPage() {
               onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
               placeholder="e.g. React, Machine Learning, Data Structures..."
               disabled={generating}
-              className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-[#1a1a1a] border border-slate-200 dark:border-[#2a2a2a] rounded-xl text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all disabled:opacity-50"
+              className="w-full pl-11 pr-4 py-3 bg-slate-50 dark:bg-[var(--soft-raised)] border border-slate-200 dark:border-[var(--soft-line)] rounded-xl text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-violet-500 transition-all disabled:opacity-50"
             />
           </div>
           <motion.button
@@ -271,7 +271,7 @@ export default function TutorHubPage() {
                 handleGenerate(pick.label);
               }}
               disabled={generating}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-[#1a1a1a] border border-slate-200 dark:border-[#2a2a2a] text-slate-600 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-violet-500/10 hover:border-violet-300 dark:hover:border-violet-500/30 hover:text-violet-700 dark:hover:text-violet-400 transition-all disabled:opacity-50 cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-[var(--soft-raised)] border border-slate-200 dark:border-[var(--soft-line)] text-slate-600 dark:text-slate-300 hover:bg-violet-50 dark:hover:bg-violet-500/10 hover:border-violet-300 dark:hover:border-violet-500/30 hover:text-violet-700 dark:hover:text-violet-400 transition-all disabled:opacity-50 cursor-pointer"
             >
               {pick.icon}
               {pick.label}
@@ -287,24 +287,24 @@ export default function TutorHubPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="bg-white dark:bg-[#121212] rounded-2xl shadow-sm dark:shadow-black/20 p-6"
+            className="bg-white dark:bg-[var(--soft-surface)] rounded-2xl shadow-sm dark:shadow-black/20 p-6"
           >
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center animate-pulse">
                 <Sparkles className="w-5 h-5 text-violet-500" />
               </div>
               <div>
-                <div className="h-4 w-32 bg-slate-200 dark:bg-[#2a2a2a] rounded animate-pulse" />
-                <div className="h-3 w-48 bg-slate-100 dark:bg-[#1a1a1a] rounded animate-pulse mt-2" />
+                <div className="h-4 w-32 bg-slate-200 dark:bg-[var(--soft-line)] rounded animate-pulse" />
+                <div className="h-3 w-48 bg-slate-100 dark:bg-[var(--soft-raised)] rounded animate-pulse mt-2" />
               </div>
             </div>
             <div className="space-y-3">
               {[...Array(5)].map((_, i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <div className="w-4 h-4 rounded-full bg-slate-200 dark:bg-[#2a2a2a] animate-pulse" />
+                  <div className="w-4 h-4 rounded-full bg-slate-200 dark:bg-[var(--soft-line)] animate-pulse" />
                   <div className="flex-1">
                     <div
-                      className="h-3 bg-slate-200 dark:bg-[#2a2a2a] rounded animate-pulse"
+                      className="h-3 bg-slate-200 dark:bg-[var(--soft-line)] rounded animate-pulse"
                       style={{ width: `${60 + Math.random() * 30}%` }}
                     />
                   </div>
@@ -389,7 +389,7 @@ function SubjectCard({
   const completedCount = subject.chapters.filter((c) => c.status === 'completed').length;
 
   return (
-    <div className="bg-white dark:bg-[#121212] rounded-2xl shadow-sm dark:shadow-black/20 border-none overflow-hidden transition-all">
+    <div className="bg-white dark:bg-[var(--soft-surface)] rounded-2xl shadow-sm dark:shadow-black/20 border-none overflow-hidden transition-all">
       {/* Card Header */}
       <button
         onClick={onToggle}
@@ -413,7 +413,7 @@ function SubjectCard({
               </span>
             </div>
             {/* Progress bar */}
-            <div className="mt-2 h-1.5 bg-slate-100 dark:bg-[#2a2a2a] rounded-full overflow-hidden max-w-xs">
+            <div className="mt-2 h-1.5 bg-slate-100 dark:bg-[var(--soft-line)] rounded-full overflow-hidden max-w-xs">
               <motion.div
                 className="h-full bg-gradient-to-r from-violet-500 to-indigo-500 rounded-full"
                 initial={{ width: 0 }}
@@ -468,13 +468,13 @@ function SubjectCard({
             transition={{ duration: 0.3, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className="border-t border-slate-100 dark:border-[#1e1e1e] px-5 sm:px-6 pb-5 sm:pb-6">
+            <div className="border-t border-slate-100 dark:border-[var(--soft-line)] px-5 sm:px-6 pb-5 sm:pb-6">
               <div className="space-y-1 pt-4">
                 {subject.chapters.map((chapter) => (
                   <button
                     key={chapter.number}
                     onClick={() => onChapterClick(subject.slug, chapter.number)}
-                    className="w-full text-left group/ch flex items-start gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-[#1a1a1a] transition-all cursor-pointer"
+                    className="w-full text-left group/ch flex items-start gap-3 px-4 py-3 rounded-xl hover:bg-slate-50 dark:hover:bg-[var(--soft-raised)] transition-all cursor-pointer"
                   >
                     <div className="mt-0.5">{getStatusIcon(chapter.status)}</div>
                     <div className="flex-1 min-w-0">
@@ -485,7 +485,7 @@ function SubjectCard({
                         <h4
                           className={`text-sm font-semibold truncate ${
                             chapter.status === 'completed'
-                              ? 'text-slate-500 dark:text-slate-500 line-through'
+                              ? 'text-slate-500 dark:text-slate-400 line-through'
                               : 'text-slate-800 dark:text-white group-hover/ch:text-violet-600 dark:group-hover/ch:text-violet-400'
                           } transition-colors`}
                         >

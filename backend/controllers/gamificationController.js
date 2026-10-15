@@ -17,10 +17,19 @@ exports.postEvent = async (req, res) => {
       sourceRef,
       topic,
       topicCluster,
-      occurredAt,
       dedupeKey,
       metadata,
     } = req.body || {};
+
+    // Only events that cannot be proven server-side may be reported by the browser.
+    // Roadmap, resume, interview and application events are recorded by their own controllers.
+    const CLIENT_EVENT_TYPES = ['tutor_chapter_completed', 'quiz_completed'];
+    if (!CLIENT_EVENT_TYPES.includes(eventType)) {
+      return res.status(403).json({ success: false, message: 'This event type cannot be reported by the client' });
+    }
+    if (!dedupeKey || typeof dedupeKey !== 'string') {
+      return res.status(400).json({ success: false, message: 'dedupeKey is required' });
+    }
 
     const result = await recordEvent({
       clerkId: req.clerkId,
@@ -29,8 +38,8 @@ exports.postEvent = async (req, res) => {
       sourceRef,
       topic,
       topicCluster,
-      occurredAt,
-      dedupeKey,
+      // occurredAt is always server time so streaks cannot be backdated
+      dedupeKey: `${eventType}:${req.clerkId}:${dedupeKey}`,
       metadata,
     });
 

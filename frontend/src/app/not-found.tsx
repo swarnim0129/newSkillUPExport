@@ -3,7 +3,7 @@ import { ArrowLeft, SearchX, GraduationCap } from "lucide-react";
 
 export default function NotFound() {
     return (
-        <div className="min-h-screen bg-[#f8fafc] dark:bg-[#0a0a0a] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        <div className="min-h-screen bg-[#f8fafc] dark:bg-[var(--soft-sunken)] flex flex-col items-center justify-center p-4 relative overflow-hidden">
             {/* Background elements to match platform theme */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
                 <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-blue-500/10 dark:bg-blue-600/5 blur-[100px]" />
@@ -23,7 +23,7 @@ export default function NotFound() {
 
                 <div className="relative flex justify-center mt-4">
                     <div className="absolute inset-0 blur-2xl rounded-full bg-slate-200 dark:bg-neutral-800 max-w-[120px] mx-auto animate-pulse" />
-                    <div className="w-24 h-24 bg-white dark:bg-[#121212] rounded-3xl shadow-xl flex items-center justify-center relative z-10 border border-slate-200 dark:border-neutral-800 rotate-6 hover:rotate-0 transition-transform duration-500">
+                    <div className="w-24 h-24 bg-white dark:bg-[var(--soft-surface)] rounded-3xl shadow-xl flex items-center justify-center relative z-10 border border-slate-200 dark:border-neutral-800 rotate-6 hover:rotate-0 transition-transform duration-500">
                         <SearchX className="w-10 h-10 text-slate-400 dark:text-neutral-500" />
                     </div>
                 </div>

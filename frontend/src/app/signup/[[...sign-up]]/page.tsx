@@ -14,7 +14,14 @@ export default function SignupPage() {
         if (refCode) {
             localStorage.setItem("skillup_referral_code", refCode);
         }
+        // Faculty sign-ups keep their intent through Clerk's redirect to /onboarding
+        if (searchParams.get("role") === "mentor") {
+            localStorage.setItem("skillup_role_intent", "mentor");
+        } else {
+            localStorage.removeItem("skillup_role_intent");
+        }
     }, [searchParams]);
+    const isFaculty = searchParams.get("role") === "mentor";
 
     return (
         <div className="min-h-screen bg-white dark:bg-neutral-950 transition-colors">
@@ -42,13 +49,16 @@ export default function SignupPage() {
                             ))}
                         </div>
                         <h1 className="text-2xl md:text-3xl font-medium leading-tight z-10 tracking-tight relative">
-                            Find top talent for your company with SkillUp.
+                            {isFaculty
+                                ? "Run your classes on SkillUp: one join code, work that checks itself, insights on every student."
+                                : "Your four-year plan and AI companion, from first year to placements."}
                         </h1>
                     </div>
 
                     {/* Right Panel - Clerk SignUp (Always Dark) */}
                     <div className="p-8 md:p-12 md:w-1/2 flex flex-col items-center justify-center bg-neutral-900">
                         <SignUp
+                            forceRedirectUrl={isFaculty ? "/onboarding?role=mentor" : "/onboarding"}
                             appearance={{
                                 variables: {
                                     colorBackground: "#171717",

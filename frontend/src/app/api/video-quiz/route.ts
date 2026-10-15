@@ -1,8 +1,15 @@
-import { NextResponse } from "next/server";
-import { getGeminiClient } from "@/lib/gemini";
+import { NextRequest, NextResponse } from "next/server";
+import { getAuth } from "@clerk/nextjs/server";
+import { withGeminiFallback } from "@/lib/gemini";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
+    // This route spends the server's AI quota, so only signed-in users may call it
+    const { userId } = getAuth(request);
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { videoTitle, topic, overallSummary, chapters } =
       await request.json();
 
@@ -13,8 +20,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const genAI = getGeminiClient();
-    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
 
     const chaptersText = (chapters || [])
       .map(
@@ -49,8 +54,7 @@ Return ONLY valid JSON — no markdown, no explanation:
   ]
 }`;
 
-    const result = await model.generateContent(prompt);
-    const text = result.response.text().trim();
+    const text = (await withGeminiFallback((model) => model.generateContent(prompt).then((r) => r.response.text()))).trim();
 
     // Strip possible markdown fences
     const jsonText = text

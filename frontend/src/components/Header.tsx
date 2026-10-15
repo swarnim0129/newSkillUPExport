@@ -18,7 +18,7 @@ export default function Header({ title, onSearch, searchValue }: HeaderProps) {
             <div>
                 <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{title}</h1>
                 <p className="text-slate-500 dark:text-neutral-400 text-sm mt-1">
-                    Manage your company overview and activities
+                    Manage the platform
                 </p>
             </div>
 

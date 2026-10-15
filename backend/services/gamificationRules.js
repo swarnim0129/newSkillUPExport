@@ -9,6 +9,7 @@ const XP_RULES = {
   resume_exported: 8,
   interview_completed: 35,
   application_sent: 8,
+  dsa_solved: 20,
 };
 
 const CREDIT_AWARDS = {

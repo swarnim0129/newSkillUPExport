@@ -57,3 +57,8 @@ frontend/.env
 *.tsbuildinfo
 next-env.d.ts
 
+# Secrets and personal data that must never be committed
+.clerk/
+backend2/YT_transcript/*cookies*.txt
+backend/uploads/
+backend2/output/

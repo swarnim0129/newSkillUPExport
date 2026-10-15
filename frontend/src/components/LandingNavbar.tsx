@@ -38,7 +38,7 @@ export default function LandingNavbar() {
     const { theme } = useTheme();
     const [mounted, setMounted] = useState(false);
     const pathname = usePathname();
-    const isDashboardPage = pathname?.startsWith('/candidate') || pathname?.startsWith('/company');
+    const isDashboardPage = pathname?.startsWith('/candidate') || pathname?.startsWith('/mentor');
 
     useEffect(() => {
         setMounted(true);
@@ -65,9 +65,11 @@ export default function LandingNavbar() {
             transition={{ duration: 0.5 }}
             className={cn(
                 'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-                isScrolled
-                    ? 'bg-background/95 backdrop-blur-lg border-b border-border/50 shadow-sm '
-                    : 'bg-transparent',
+                isDashboardPage
+                    ? 'bg-white/55 dark:bg-[rgb(18_24_38/0.55)] backdrop-blur-xl border-b border-white/70 dark:border-white/5 shadow-[0_6px_24px_-14px_rgb(146_162_190/0.5)] dark:shadow-[0_6px_24px_-14px_rgb(0_0_0/0.6)]'
+                    : isScrolled
+                        ? 'bg-background/70 backdrop-blur-xl border-b border-border/50 shadow-sm '
+                        : 'bg-transparent',
             )}
         >
             <nav className="container mx-auto px-4 sm:px-6 lg:px-8">

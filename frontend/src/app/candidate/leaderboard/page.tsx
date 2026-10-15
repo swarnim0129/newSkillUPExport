@@ -133,7 +133,7 @@ export default function CandidateLeaderboardPage() {
       )}
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <div className="xl:col-span-2 bg-white dark:bg-[#0d0d0d] border border-slate-200 dark:border-neutral-800 rounded-2xl p-4 sm:p-5">
+        <div className="xl:col-span-2 bg-white dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-neutral-800 rounded-2xl p-4 sm:p-5">
           <div className="flex items-center gap-2 mb-4">
             <Trophy className="w-5 h-5 text-amber-500" />
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">Rankings</h2>
@@ -172,7 +172,7 @@ export default function CandidateLeaderboardPage() {
         </div>
 
         <div className="space-y-4">
-          <div className="bg-white dark:bg-[#0d0d0d] border border-slate-200 dark:border-neutral-800 rounded-2xl p-4 sm:p-5">
+          <div className="bg-white dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-neutral-800 rounded-2xl p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <Target className="w-5 h-5 text-cyan-500" />
               <h3 className="font-bold text-slate-900 dark:text-white">Surpass Next Rank</h3>
@@ -195,7 +195,7 @@ export default function CandidateLeaderboardPage() {
             )}
           </div>
 
-          <div className="bg-white dark:bg-[#0d0d0d] border border-slate-200 dark:border-neutral-800 rounded-2xl p-4 sm:p-5">
+          <div className="bg-white dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-neutral-800 rounded-2xl p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <Rocket className="w-5 h-5 text-emerald-500" />
               <h3 className="font-bold text-slate-900 dark:text-white">Chase Leader</h3>
@@ -218,7 +218,7 @@ export default function CandidateLeaderboardPage() {
             )}
           </div>
 
-          <div className="bg-white dark:bg-[#0d0d0d] border border-slate-200 dark:border-neutral-800 rounded-2xl p-4 sm:p-5">
+          <div className="bg-white dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-neutral-800 rounded-2xl p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-2">
               <Flame className="w-5 h-5 text-orange-500" />
               <h3 className="font-bold text-slate-900 dark:text-white">Momentum</h3>

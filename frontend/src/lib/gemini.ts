@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, type GenerativeModel } from "@google/generative-ai";
 
 /**
  * Round-robin Gemini API key manager for Next.js server-side routes.
@@ -34,4 +34,38 @@ export function getGeminiClient(): GoogleGenerativeAI {
   const key = keys[currentIndex % keys.length];
   currentIndex++;
   return new GoogleGenerativeAI(key);
+}
+
+// Main model first, then backups. Gemini often answers "high demand" (503);
+// a second model usually answers straight away.
+const MODELS = [
+  process.env.GEMINI_MODEL || "gemini-3.5-flash",
+  ...(process.env.GEMINI_FALLBACK_MODELS || "gemini-3.8-flash,gemini-3.5-flash-lite")
+    .split(",")
+    .map((m) => m.trim())
+    .filter(Boolean),
+];
+
+function isTransient(err: unknown): boolean {
+  return /\b(429|500|503)\b|overloaded|high demand|fetch failed|timed out/i.test(String((err as Error)?.message || err));
+}
+
+/**
+ * Run a Gemini call, trying the next model (and next API key) when one fails.
+ * At most three tries; the last error is thrown if all fail.
+ */
+export async function withGeminiFallback<T>(run: (model: GenerativeModel) => Promise<T>): Promise<T> {
+  const attempts = [...new Set(MODELS)].slice(0, 3);
+  let lastError: unknown;
+  for (let i = 0; i < attempts.length; i++) {
+    try {
+      return await run(getGeminiClient().getGenerativeModel({ model: attempts[i] }));
+    } catch (err) {
+      lastError = err;
+      if (i < attempts.length - 1 && isTransient(err)) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    }
+  }
+  throw lastError;
 }

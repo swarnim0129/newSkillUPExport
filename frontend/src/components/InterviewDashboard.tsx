@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import Link from 'next/link';
 import Vapi from "@vapi-ai/web";
 import { motion, AnimatePresence } from "motion/react";
 import { useAuth } from "@clerk/nextjs";
@@ -553,7 +554,7 @@ export default function InterviewDashboard() {
     // ─── Render ─────────────────────────────────────────────────────────────────
 
     return (
-        <div className={`min-h-screen bg-slate-50/50 dark:bg-[#0a0a0a] w-full font-sans text-slate-900 dark:text-white ${viewState === "active" || viewState === "generating" ? "p-4 lg:p-6" : "p-6 lg:p-8"
+        <div className={`min-h-screen bg-slate-50/50 dark:bg-[var(--soft-sunken)] w-full font-sans text-slate-900 dark:text-white ${viewState === "active" || viewState === "generating" ? "p-4 lg:p-6" : "p-6 lg:p-8"
             }`}>
             {/* Header — hidden during active call */}
             {viewState !== "active" && viewState !== "generating" && (
@@ -729,10 +730,18 @@ function InterviewHistory({
 
     return (
         <div className="space-y-4">
-            <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                <Clock className="w-5 h-5 text-slate-400" />
-                Past Interviews
-            </h2>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                    <Clock className="w-5 h-5 text-slate-400" />
+                    Past Interviews
+                </h2>
+                <Link
+                    href="/candidate/ai-interview/replay"
+                    className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white shadow-[0_8px_18px_-8px_rgb(37_99_235/0.7)] hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                >
+                    <Sparkles className="w-4 h-4" /> Replay with heatmap
+                </Link>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {interviews.map((interview, i) => (
                     <motion.div
@@ -789,7 +798,7 @@ function InterviewHistoryCard({
             tabIndex={0}
             onClick={onClick}
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
-            className="w-full text-left group cursor-pointer bg-white/80 dark:bg-[#121212]/90 backdrop-blur-xl rounded-2xl border border-slate-200/60 dark:border-[#2a2a2a] shadow-sm hover:shadow-md hover:border-blue-300 dark:hover:border-blue-500/30 p-5 transition-all duration-200"
+            className="w-full text-left group cursor-pointer bg-white/80 dark:bg-[var(--soft-surface)]/90 backdrop-blur-xl rounded-2xl border border-slate-200/60 dark:border-[var(--soft-line)] shadow-sm hover:shadow-md hover:border-blue-300 dark:hover:border-blue-500/30 p-5 transition-all duration-200"
         >
             <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -823,10 +832,10 @@ function InterviewHistoryCard({
             </div>
 
             <div className="flex flex-wrap gap-1.5 mb-3">
-                <span className="px-2 py-0.5 bg-slate-100 dark:bg-[#1a1a1a] rounded-md text-[11px] font-semibold text-slate-600 dark:text-slate-400">
+                <span className="px-2 py-0.5 bg-slate-100 dark:bg-[var(--soft-raised)] rounded-md text-[11px] font-semibold text-slate-600 dark:text-slate-400">
                     {interview.seniority}
                 </span>
-                <span className="px-2 py-0.5 bg-slate-100 dark:bg-[#1a1a1a] rounded-md text-[11px] font-semibold text-slate-600 dark:text-slate-400">
+                <span className="px-2 py-0.5 bg-slate-100 dark:bg-[var(--soft-raised)] rounded-md text-[11px] font-semibold text-slate-600 dark:text-slate-400">
                     {interview.category}
                 </span>
             </div>
@@ -837,13 +846,13 @@ function InterviewHistoryCard({
                 </p>
             )}
 
-            <div className="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-500">
+            <div className="flex items-center gap-1.5 text-[11px] text-slate-400 dark:text-slate-400">
                 <Calendar className="w-3 h-3" />
                 {formattedDate} · {formattedTime}
             </div>
 
             {isCompleted && interview.feedback?.hiring_recommendation && (
-                <div className="mt-3 pt-3 border-t border-slate-100 dark:border-[#1f1f1f]">
+                <div className="mt-3 pt-3 border-t border-slate-100 dark:border-[var(--soft-line)]">
                     <div className="flex items-center gap-1.5">
                         <Trophy className="w-3 h-3 text-amber-500" />
                         <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
@@ -887,7 +896,7 @@ function SetupForm({
         <div className="max-w-3xl mx-auto">
             <div className="relative rounded-2xl overflow-hidden">
                 <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/20 via-purple-500/10 to-emerald-500/20 dark:from-blue-500/10 dark:via-purple-500/5 dark:to-emerald-500/10" />
-                <div className="relative bg-white/80 dark:bg-[#121212]/90 backdrop-blur-xl rounded-2xl border border-slate-200/60 dark:border-[#2a2a2a] shadow-xl shadow-slate-200/50 dark:shadow-black/30 p-8">
+                <div className="relative bg-white/80 dark:bg-[var(--soft-surface)]/90 backdrop-blur-xl rounded-2xl border border-slate-200/60 dark:border-[var(--soft-line)] shadow-xl shadow-slate-200/50 dark:shadow-black/30 p-8">
                     {/* Title */}
                     <div className="flex items-center gap-3 mb-8">
                         <div className="p-2.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg shadow-blue-500/25">
@@ -923,7 +932,7 @@ function SetupForm({
                                 type="text"
                                 value={role}
                                 placeholder="e.g. Software Engineer, Product Manager, Data Scientist"
-                                className="w-full p-3 bg-slate-50 dark:bg-[#1a1a1a] border border-slate-200 dark:border-[#2a2a2a] rounded-xl text-slate-900 dark:text-white text-sm font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 outline-none transition-all"
+                                className="w-full p-3 bg-slate-50 dark:bg-[var(--soft-raised)] border border-slate-200 dark:border-[var(--soft-line)] rounded-xl text-slate-900 dark:text-white text-sm font-medium placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 outline-none transition-all"
                                 onChange={(e) => setRole(e.target.value)}
                             />
                         </div>
@@ -936,7 +945,7 @@ function SetupForm({
                             <select
                                 value={seniority}
                                 onChange={(e) => setSeniority(e.target.value)}
-                                className="w-full p-3 bg-slate-50 dark:bg-[#1a1a1a] border border-slate-200 dark:border-[#2a2a2a] rounded-xl text-slate-900 dark:text-white text-sm font-medium focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 outline-none transition-all"
+                                className="w-full p-3 bg-slate-50 dark:bg-[var(--soft-raised)] border border-slate-200 dark:border-[var(--soft-line)] rounded-xl text-slate-900 dark:text-white text-sm font-medium focus:ring-2 focus:ring-purple-500/40 focus:border-purple-500 outline-none transition-all"
                             >
                                 {SENIORITY_LEVELS.map((s) => (
                                     <option key={s} value={s}>{s}</option>
@@ -952,7 +961,7 @@ function SetupForm({
                             <select
                                 value={category}
                                 onChange={(e) => setCategory(e.target.value)}
-                                className="w-full p-3 bg-slate-50 dark:bg-[#1a1a1a] border border-slate-200 dark:border-[#2a2a2a] rounded-xl text-slate-900 dark:text-white text-sm font-medium focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 outline-none transition-all"
+                                className="w-full p-3 bg-slate-50 dark:bg-[var(--soft-raised)] border border-slate-200 dark:border-[var(--soft-line)] rounded-xl text-slate-900 dark:text-white text-sm font-medium focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 outline-none transition-all"
                             >
                                 {CATEGORIES.map((c) => (
                                     <option key={c} value={c}>{c}</option>
@@ -969,7 +978,7 @@ function SetupForm({
                                 type="text"
                                 value={topic}
                                 placeholder="e.g. React Hooks, System Design, STAR Method"
-                                className="w-full p-3 bg-slate-50 dark:bg-[#1a1a1a] border border-slate-200 dark:border-[#2a2a2a] rounded-xl text-slate-900 dark:text-white text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500 outline-none transition-all"
+                                className="w-full p-3 bg-slate-50 dark:bg-[var(--soft-raised)] border border-slate-200 dark:border-[var(--soft-line)] rounded-xl text-slate-900 dark:text-white text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500 outline-none transition-all"
                                 onChange={(e) => setTopic(e.target.value)}
                             />
                         </div>
@@ -998,7 +1007,7 @@ function SetupForm({
                         </p>
                     )}
 
-                    <div className="mt-6 flex items-start gap-3 text-xs text-slate-400 dark:text-slate-500">
+                    <div className="mt-6 flex items-start gap-3 text-xs text-slate-400 dark:text-slate-400">
                         <Volume2 className="w-4 h-4 mt-0.5 flex-shrink-0" />
                         <p>
                             Make sure your microphone is enabled. The AI will ask you questions and provide
@@ -1062,7 +1071,7 @@ function ActiveCallUI({
         <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-6">
             {/* Left: Call Status */}
             <div className="lg:col-span-2">
-                <div className="relative bg-white/80 dark:bg-[#121212]/90 backdrop-blur-xl rounded-2xl border border-slate-200/60 dark:border-[#2a2a2a] shadow-xl shadow-slate-200/50 dark:shadow-black/30 p-8 text-center sticky top-8">
+                <div className="relative bg-white/80 dark:bg-[var(--soft-surface)]/90 backdrop-blur-xl rounded-2xl border border-slate-200/60 dark:border-[var(--soft-line)] shadow-xl shadow-slate-200/50 dark:shadow-black/30 p-8 text-center sticky top-8">
                     {/* Timer */}
                     {callStatus === "active" && (
                         <div className="flex items-center justify-center gap-2 mb-4">
@@ -1150,8 +1159,8 @@ function ActiveCallUI({
 
             {/* Right: Live Transcript */}
             <div className="lg:col-span-3">
-                <div className="bg-white/80 dark:bg-[#121212]/90 backdrop-blur-xl rounded-2xl border border-slate-200/60 dark:border-[#2a2a2a] shadow-xl shadow-slate-200/50 dark:shadow-black/30 p-6 h-[calc(100vh-220px)] flex flex-col">
-                    <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-100 dark:border-[#1f1f1f]">
+                <div className="bg-white/80 dark:bg-[var(--soft-surface)]/90 backdrop-blur-xl rounded-2xl border border-slate-200/60 dark:border-[var(--soft-line)] shadow-xl shadow-slate-200/50 dark:shadow-black/30 p-6 h-[calc(100vh-220px)] flex flex-col">
+                    <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-100 dark:border-[var(--soft-line)]">
                         <MessageCircle className="w-4 h-4 text-blue-500" />
                         <h3 className="text-sm font-bold text-slate-800 dark:text-white">Live Transcript</h3>
                         <div className="ml-auto flex items-center gap-1.5">
@@ -1167,7 +1176,7 @@ function ActiveCallUI({
 
                     <div ref={chatContainerRef} className="flex-1 overflow-y-auto space-y-3 pr-1 scrollbar-thin">
                         {transcript.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-full text-slate-400 dark:text-slate-500">
+                            <div className="flex flex-col items-center justify-center h-full text-slate-400 dark:text-slate-400">
                                 <Mic className="w-8 h-8 mb-2 opacity-40" />
                                 <p className="text-sm">Conversation will appear here...</p>
                             </div>
@@ -1194,7 +1203,7 @@ function ActiveCallUI({
                                     </div>
                                     <div
                                         className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed transition-opacity duration-200 ${entry.role === "assistant"
-                                            ? "bg-slate-100 dark:bg-[#1a1a1a] text-slate-800 dark:text-slate-200 rounded-bl-md"
+                                            ? "bg-slate-100 dark:bg-[var(--soft-raised)] text-slate-800 dark:text-slate-200 rounded-bl-md"
                                             : "bg-blue-600 text-white rounded-br-md"
                                             } ${entry.isPartial ? "opacity-60 italic" : ""}`}
                                     >
@@ -1281,7 +1290,7 @@ function GeneratingUI() {
                                 ? "bg-emerald-500"
                                 : i === currentStep
                                     ? "bg-blue-500"
-                                    : "bg-slate-200 dark:bg-[#2a2a2a]"
+                                    : "bg-slate-200 dark:bg-[var(--soft-line)]"
                                 }`}>
                                 {i < currentStep ? (
                                     <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -1360,15 +1369,15 @@ function FeedbackDisplay({
             </button>
 
             {/* ═══ Report Container ═══ */}
-            <div className="bg-white dark:bg-[#111111] rounded-2xl border border-slate-200 dark:border-[#222] shadow-xl shadow-slate-200/60 dark:shadow-black/40 overflow-hidden">
+            <div className="bg-white dark:bg-[var(--soft-surface)] rounded-2xl border border-slate-200 dark:border-[#222] shadow-xl shadow-slate-200/60 dark:shadow-black/40 overflow-hidden">
 
                 {/* ── Report Header ── */}
-                <div className="relative px-8 pt-8 pb-6 border-b border-slate-100 dark:border-[#1c1c1c]">
+                <div className="relative px-8 pt-8 pb-6 border-b border-slate-100 dark:border-[var(--soft-line)]">
                     <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500" />
 
                     <div className="flex items-start justify-between">
                         <div>
-                            <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-1">Interview Assessment Report</p>
+                            <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-400 mb-1">Interview Assessment Report</p>
                             <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white">Performance Evaluation</h2>
                             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">AI-graded assessment based on your interview responses</p>
                         </div>
@@ -1379,12 +1388,12 @@ function FeedbackDisplay({
                 </div>
 
                 {/* ── Score Section ── */}
-                <div className="px-8 py-8 border-b border-slate-100 dark:border-[#1c1c1c]">
+                <div className="px-8 py-8 border-b border-slate-100 dark:border-[var(--soft-line)]">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
 
                         {/* Overall Score — Large Gauge */}
                         <div className="flex flex-col items-center">
-                            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 mb-3">Overall Score</p>
+                            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400 dark:text-slate-400 mb-3">Overall Score</p>
                             <div className="relative w-36 h-36">
                                 <svg className="w-full h-full transform -rotate-90">
                                     <circle cx="50%" cy="50%" r="52" className="stroke-slate-100 dark:stroke-[#1f1f1f] fill-none" strokeWidth="10" />
@@ -1407,7 +1416,7 @@ function FeedbackDisplay({
                         {/* Individual Scores */}
                         <div className="md:col-span-2 grid grid-cols-2 gap-4">
                             {/* Communication */}
-                            <div className="bg-slate-50/80 dark:bg-[#0d0d0d] rounded-xl p-5 border border-slate-100 dark:border-[#1c1c1c]">
+                            <div className="bg-slate-50/80 dark:bg-[var(--soft-sunken)] rounded-xl p-5 border border-slate-100 dark:border-[var(--soft-line)]">
                                 <div className="flex items-center gap-2 mb-3">
                                     <div className={`p-1.5 rounded-lg ${commColors.bgLight}`}>
                                         <Volume2 className={`w-4 h-4 ${commColors.text}`} />
@@ -1418,7 +1427,7 @@ function FeedbackDisplay({
                                     <span className={`text-3xl font-black ${commColors.text}`}>{data.communication_score}</span>
                                     <span className={`text-lg font-bold ${commColors.text} opacity-60`}>{getGrade(data.communication_score)}</span>
                                 </div>
-                                <div className="h-2 bg-slate-200/60 dark:bg-[#1a1a1a] rounded-full overflow-hidden">
+                                <div className="h-2 bg-slate-200/60 dark:bg-[var(--soft-raised)] rounded-full overflow-hidden">
                                     <motion.div
                                         initial={{ width: 0 }}
                                         animate={{ width: `${data.communication_score * 10}%` }}
@@ -1429,7 +1438,7 @@ function FeedbackDisplay({
                             </div>
 
                             {/* Technical */}
-                            <div className="bg-slate-50/80 dark:bg-[#0d0d0d] rounded-xl p-5 border border-slate-100 dark:border-[#1c1c1c]">
+                            <div className="bg-slate-50/80 dark:bg-[var(--soft-sunken)] rounded-xl p-5 border border-slate-100 dark:border-[var(--soft-line)]">
                                 <div className="flex items-center gap-2 mb-3">
                                     <div className={`p-1.5 rounded-lg ${techColors.bgLight}`}>
                                         <Target className={`w-4 h-4 ${techColors.text}`} />
@@ -1440,7 +1449,7 @@ function FeedbackDisplay({
                                     <span className={`text-3xl font-black ${techColors.text}`}>{data.technical_score}</span>
                                     <span className={`text-lg font-bold ${techColors.text} opacity-60`}>{getGrade(data.technical_score)}</span>
                                 </div>
-                                <div className="h-2 bg-slate-200/60 dark:bg-[#1a1a1a] rounded-full overflow-hidden">
+                                <div className="h-2 bg-slate-200/60 dark:bg-[var(--soft-raised)] rounded-full overflow-hidden">
                                     <motion.div
                                         initial={{ width: 0 }}
                                         animate={{ width: `${data.technical_score * 10}%` }}
@@ -1454,7 +1463,7 @@ function FeedbackDisplay({
                 </div>
 
                 {/* ── Detailed Evaluation ── */}
-                <div className="px-8 py-8 border-b border-slate-100 dark:border-[#1c1c1c]">
+                <div className="px-8 py-8 border-b border-slate-100 dark:border-[var(--soft-line)]">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
                         {/* Strengths */}
@@ -1483,7 +1492,7 @@ function FeedbackDisplay({
                                     ))}
                                 </div>
                             ) : (
-                                <p className="text-sm text-slate-400 dark:text-slate-500 italic">No specific strengths identified.</p>
+                                <p className="text-sm text-slate-400 dark:text-slate-400 italic">No specific strengths identified.</p>
                             )}
                         </div>
 
@@ -1513,7 +1522,7 @@ function FeedbackDisplay({
                                     ))}
                                 </div>
                             ) : (
-                                <p className="text-sm text-slate-400 dark:text-slate-500 italic">No specific weaknesses identified.</p>
+                                <p className="text-sm text-slate-400 dark:text-slate-400 italic">No specific weaknesses identified.</p>
                             )}
                         </div>
                     </div>
@@ -1521,14 +1530,14 @@ function FeedbackDisplay({
 
                 {/* ── Recommended Action Plan ── */}
                 {data.improvement_plan && (
-                    <div className="px-8 py-8 border-b border-slate-100 dark:border-[#1c1c1c]">
+                    <div className="px-8 py-8 border-b border-slate-100 dark:border-[var(--soft-line)]">
                         <div className="flex items-center gap-2 mb-4">
                             <div className="w-6 h-6 rounded-md bg-blue-500 flex items-center justify-center">
                                 <Zap className="w-3.5 h-3.5 text-white" />
                             </div>
                             <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">Recommended Action Plan</h3>
                         </div>
-                        <div className="bg-slate-50/80 dark:bg-[#0d0d0d] rounded-xl p-5 border border-slate-100 dark:border-[#1c1c1c]">
+                        <div className="bg-slate-50/80 dark:bg-[var(--soft-sunken)] rounded-xl p-5 border border-slate-100 dark:border-[var(--soft-line)]">
                             <p className="text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
                                 {data.improvement_plan}
                             </p>
@@ -1537,8 +1546,8 @@ function FeedbackDisplay({
                 )}
 
                 {/* ── Footer ── */}
-                <div className="px-8 py-5 bg-slate-50/50 dark:bg-[#0c0c0c] flex items-center justify-between">
-                    <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+                <div className="px-8 py-5 bg-slate-50/50 dark:bg-[var(--soft-sunken)] flex items-center justify-between">
+                    <p className="text-[11px] text-slate-400 dark:text-slate-400 font-medium">
                         Assessment generated by SkillUp AI · {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
                     </p>
                     <motion.button

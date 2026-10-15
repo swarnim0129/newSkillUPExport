@@ -630,7 +630,7 @@ export default function CandidateRevisionPage() {
   const tone = currentCard ? getFlashcardTone(currentCard.difficulty) : null;
 
   return (
-    <div className="min-h-full space-y-6 p-4 sm:p-6 lg:p-8 bg-slate-50/50 dark:bg-[#0a0a0a]">
+    <div className="min-h-full space-y-6 p-4 sm:p-6 lg:p-8 bg-slate-50/50 dark:bg-[var(--soft-sunken)]">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Revision Hub</h1>
@@ -689,7 +689,7 @@ export default function CandidateRevisionPage() {
       </div>
 
       {/* ═══════════ COMPLETED COURSES ═══════════ */}
-      <div className="bg-white dark:bg-[#0d0d0d] border border-slate-200 dark:border-neutral-800 rounded-2xl p-5">
+      <div className="bg-white dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-neutral-800 rounded-2xl p-5">
         <div className="flex items-center gap-2 mb-4">
           <BookOpen className="w-5 h-5 text-cyan-500" />
           <h2 className="text-lg font-bold text-slate-900 dark:text-white">Completed Courses</h2>
@@ -738,7 +738,7 @@ export default function CandidateRevisionPage() {
       {activeTab === 'explainer' && (
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* Input Panel */}
-          <div className="bg-white dark:bg-[#0d0d0d] border border-slate-200 dark:border-neutral-800 rounded-2xl p-5">
+          <div className="bg-white dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-neutral-800 rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-4">
               <Sparkles className="w-5 h-5 text-purple-500" />
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">Explainer Input</h2>
@@ -827,7 +827,7 @@ export default function CandidateRevisionPage() {
 
           {/* Explanation Display */}
           <div className="xl:col-span-2 space-y-6">
-            <div className="bg-white dark:bg-[#0d0d0d] border border-slate-200 dark:border-neutral-800 rounded-2xl p-5">
+            <div className="bg-white dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-neutral-800 rounded-2xl p-5">
               <div className="flex items-center gap-2 mb-3">
                 <FileText className="w-5 h-5 text-emerald-500" />
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white">Generated Explanation</h2>
@@ -878,7 +878,7 @@ export default function CandidateRevisionPage() {
             </div>
 
             {/* History */}
-            <div className="bg-white dark:bg-[#0d0d0d] border border-slate-200 dark:border-neutral-800 rounded-2xl p-5">
+            <div className="bg-white dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-neutral-800 rounded-2xl p-5">
               <div className="flex items-center gap-2 mb-3">
                 <History className="w-5 h-5 text-orange-500" />
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white">Saved Explanations</h2>
@@ -915,7 +915,7 @@ export default function CandidateRevisionPage() {
       {activeTab === 'flashcards' && (
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* Input Panel */}
-          <div className="bg-white dark:bg-[#0d0d0d] border border-slate-200 dark:border-neutral-800 rounded-2xl p-5">
+          <div className="bg-white dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-neutral-800 rounded-2xl p-5">
             <div className="flex items-center gap-2 mb-4">
               <Brain className="w-5 h-5 text-violet-500" />
               <h2 className="text-lg font-bold text-slate-900 dark:text-white">Flashcard Generator</h2>
@@ -1054,7 +1054,7 @@ export default function CandidateRevisionPage() {
           {/* Flashcard Study Area */}
           <div className="xl:col-span-2">
             {flashcards.length === 0 ? (
-              <div className="bg-white dark:bg-[#0d0d0d] border border-slate-200 dark:border-neutral-800 rounded-2xl p-10 text-center">
+              <div className="bg-white dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-neutral-800 rounded-2xl p-10 text-center">
                 <Layers3 className="w-12 h-12 mx-auto text-slate-300 dark:text-neutral-700 mb-4" />
                 <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">No Flashcards Yet</h3>
                 <p className="text-sm text-slate-500 dark:text-neutral-400">Generate flashcards from text, URL, or PDF to start studying.</p>
@@ -1062,7 +1062,7 @@ export default function CandidateRevisionPage() {
             ) : (
               <div className="space-y-5">
                 {/* Progress Bar */}
-                <div className="bg-white dark:bg-[#0d0d0d] border border-slate-200 dark:border-neutral-800 rounded-xl p-4">
+                <div className="bg-white dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-neutral-800 rounded-xl p-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
                       Card {flashcardStudyIndex + 1} of {flashcards.length}
@@ -1083,7 +1083,7 @@ export default function CandidateRevisionPage() {
                 {currentCard && tone && (
                   <div
                     onClick={() => setShowFlashcardBack(!showFlashcardBack)}
-                    className={`cursor-pointer bg-white dark:bg-[#0d0d0d] rounded-2xl p-8 sm:p-10 min-h-[280px] flex flex-col items-center justify-center text-center transition-all duration-500 ${
+                    className={`cursor-pointer bg-white dark:bg-[var(--soft-sunken)] rounded-2xl p-8 sm:p-10 min-h-[280px] flex flex-col items-center justify-center text-center transition-all duration-500 ${
                       showFlashcardBack ? tone.backGlow : tone.frontGlow
                     }`}
                   >
@@ -1129,7 +1129,7 @@ export default function CandidateRevisionPage() {
                 </div>
 
                 {/* All Cards Grid */}
-                <div className="bg-white dark:bg-[#0d0d0d] border border-slate-200 dark:border-neutral-800 rounded-2xl p-5">
+                <div className="bg-white dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-neutral-800 rounded-2xl p-5">
                   <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-3">All Cards</h3>
                   <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2">
                     {flashcards.map((card, idx) => {

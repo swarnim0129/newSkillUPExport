@@ -3,11 +3,16 @@ const Candidate = require('../models/Candidate');
 const cloudinary = require('../config/cloudinary');
 const stream = require('stream');
 const UserActivity = require('../models/UserActivity');
+const { quoteCharge, applyCharge, refundCharge } = require('../services/creditService');
+const { recordEvidence } = require('../services/evidenceService');
 
 // @desc    Save a resume (Upload JSON to Cloudinary as raw file)
 // @route   POST /api/resumes
 // @access  Private (Candidate)
 exports.saveResume = async (req, res) => {
+    // Set once a charge is taken; refunded in `finally` unless the resume is saved
+    let pendingCharge = null;
+    let delivered = false;
     try {
         const { title, template, data, resumeId } = req.body;
         
@@ -26,37 +31,23 @@ exports.saveResume = async (req, res) => {
 
         const SAVE_COST = 10;
         const isPremiumTemplate = template === 'executive';
-        let creditCharged = 0;
 
-        if (isPremiumTemplate) {
-            // Executive template always costs credits
-            if (candidate.credits < SAVE_COST) {
-                return res.status(402).json({
-                    message: 'Executive template requires credits',
-                    creditsRequired: SAVE_COST,
-                    creditsAvailable: candidate.credits,
-                    freeUsed: true,
-                });
-            }
-            candidate.credits -= SAVE_COST;
-            creditCharged = SAVE_COST;
-        } else if (!candidate.freeResumeBuilderUsed) {
-            // First save with modern/classic is free
-            candidate.freeResumeBuilderUsed = true;
-        } else {
-            // Subsequent saves cost credits
-            if (candidate.credits < SAVE_COST) {
-                return res.status(402).json({
-                    message: 'Insufficient credits for resume save',
-                    creditsRequired: SAVE_COST,
-                    creditsAvailable: candidate.credits,
-                    freeUsed: true,
-                });
-            }
-            candidate.credits -= SAVE_COST;
-            creditCharged = SAVE_COST;
+        // Executive always costs credits; the first save with any other template is free
+        const quote = quoteCharge(candidate, {
+            freeFlag: 'freeResumeBuilderUsed',
+            cost: SAVE_COST,
+            alwaysPaid: isPremiumTemplate,
+        });
+        const charged = quote.ok ? await applyCharge(candidate._id, quote) : null;
+        if (!charged) {
+            return res.status(402).json({
+                message: isPremiumTemplate ? 'Executive template requires credits' : 'Insufficient credits for resume save',
+                creditsRequired: SAVE_COST,
+                creditsAvailable: candidate.credits,
+                freeUsed: true,
+            });
         }
-        await candidate.save();
+        pendingCharge = quote;
         // --- End credit enforcement ---
 
         const jsonString = JSON.stringify(data);
@@ -119,7 +110,16 @@ exports.saveResume = async (req, res) => {
             metadata: { title: 'Resume Generated', subtitle: `Created "${title || 'Untitled Resume'}" using ${template || 'modern'} template.` }
         }).catch(err => console.error('Activity log error:', err));
 
-        res.status(200).json({ success: true, resume, creditsRemaining: candidate.credits });
+        recordEvidence({
+            clerkId: req.clerkId,
+            type: 'resume_generated',
+            topic: 'Resume',
+            refId: String(resume._id),
+            meta: { template: template || 'modern' },
+        }).catch(err => console.error('Evidence log error:', err.message));
+
+        delivered = true;
+        res.status(200).json({ success: true, resume, creditsRemaining: charged.credits });
     } catch (error) {
         console.error('Save resume error:', error);
         res.status(500).json({ 
@@ -127,6 +127,8 @@ exports.saveResume = async (req, res) => {
             error: error.message,
             stack: process.env.NODE_ENV === 'development' ? error.stack : undefined 
         });
+    } finally {
+        if (pendingCharge && !delivered) await refundCharge(req.user._id, pendingCharge);
     }
 };
 

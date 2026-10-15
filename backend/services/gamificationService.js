@@ -45,11 +45,12 @@ function computeStreak(lastActiveAt, occurredAt, previousStreak) {
   const isSameDay = diffDays <= 0;
   const withinGrace = diffHours <= STREAK_GRACE_HOURS;
 
-  if (isSameDay || withinGrace) {
+  if (isSameDay) {
     return { before: prev, after: prev || 1, comeback: false, occurred };
   }
 
-  if (diffDays === 1) {
+  // Next calendar day, or a late-night gap that skipped a day but stayed inside the grace window
+  if (diffDays === 1 || withinGrace) {
     return { before: prev, after: prev + 1, comeback: false, occurred };
   }
 
@@ -163,11 +164,6 @@ function buildCatchupSuggestions(xpGap, currentStreak) {
       action: 'Analyze resume revisions',
       eventType: 'resume_analyzed',
       baseXp: XP_RULES.resume_analyzed,
-    },
-    {
-      action: 'Send tracked applications',
-      eventType: 'application_sent',
-      baseXp: XP_RULES.application_sent,
     },
   ];
 
@@ -412,20 +408,19 @@ async function getLeaderboard({ scope = 'global', period = 'weekly', topicCluste
     };
   }
 
-  const topicXpMap = new Map();
-  if (isTopicScoped) {
+  // XP earned inside the period, summed from the event log so it resets on its own
+  const periodXpMap = new Map();
+  {
     const now = new Date();
     const start = new Date(now);
     if (period === 'monthly') start.setDate(start.getDate() - 30);
     else start.setDate(start.getDate() - 7);
 
-    const topicAgg = await GamificationEvent.aggregate([
-      {
-        $match: {
-          occurredAt: { $gte: start },
-          topicCluster,
-        },
-      },
+    const match = { occurredAt: { $gte: start } };
+    if (isTopicScoped) match.topicCluster = topicCluster;
+
+    const periodAgg = await GamificationEvent.aggregate([
+      { $match: match },
       {
         $group: {
           _id: '$candidate',
@@ -434,8 +429,8 @@ async function getLeaderboard({ scope = 'global', period = 'weekly', topicCluste
       },
     ]);
 
-    topicAgg.forEach((row) => {
-      topicXpMap.set(String(row._id), Number(row.xp || 0));
+    periodAgg.forEach((row) => {
+      periodXpMap.set(String(row._id), Number(row.xp || 0));
     });
   }
 
@@ -446,9 +441,7 @@ async function getLeaderboard({ scope = 'global', period = 'weekly', topicCluste
       const last = String(candidate.lastName || '').trim();
       const displayName = `${first} ${last}`.trim() || 'Anonymous Learner';
 
-      const xp = isTopicScoped
-        ? Number(topicXpMap.get(id) || 0)
-        : Number(period === 'monthly' ? candidate.xpTotal || 0 : candidate.weeklyXp || 0);
+      const xp = Number(periodXpMap.get(id) || 0);
 
       return {
         candidateId: id,

@@ -6,7 +6,9 @@ const jwt = require('jsonwebtoken');
 // @access  Public
 exports.register = async (req, res) => {
   try {
-    const { name, email, password, role, companyName, website, description } = req.body;
+    const { name, email, password } = req.body;
+    // Admins are only created by the seed script, never through public signup
+    const role = 'user';
 
     // Check if user exists
     const userExists = await User.findOne({ email });
@@ -20,10 +22,7 @@ exports.register = async (req, res) => {
       name,
       email,
       password,
-      role,
-      companyName,
-      website,
-      description
+      role
     });
 
     if (user) {
@@ -38,8 +37,6 @@ exports.register = async (req, res) => {
             email: user.email,
             role: user.role,
             status: user.status,
-            companyName: user.companyName,
-            logo: user.logo,
             token
         });
     } else {
@@ -88,8 +85,6 @@ exports.login = async (req, res) => {
         email: user.email,
         role: user.role,
         status: user.status,
-        companyName: user.companyName,
-        logo: user.logo,
         token
     });
   } catch (error) {
@@ -103,15 +98,17 @@ exports.login = async (req, res) => {
 // @access  Private
 exports.getMe = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id);
+        // `protect` loads a Candidate or Mentor (Clerk), not a legacy User document
+        const user = req.user;
+        if (!user || user.role === 'new') {
+            return res.status(404).json({ message: 'Profile not found' });
+        }
         res.status(200).json({
             _id: user._id,
             name: user.name,
             email: user.email,
             role: user.role,
-            status: user.status,
-            companyName: user.companyName,
-            logo: user.logo
+            status: user.status
         });
     } catch (error) {
         console.error(error);

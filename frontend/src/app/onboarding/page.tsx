@@ -4,10 +4,10 @@ import { useState, useEffect } from "react";
 import { useUser, useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 
-import { Building2, Briefcase, ArrowRight, Loader2, X, Plus, XCircle, Upload, Link2, FileUp, CheckCircle2 } from "lucide-react";
+import { GraduationCap, Presentation, ArrowRight, Loader2, X, Plus, XCircle, Upload, Link2, FileUp, CheckCircle2 } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription, AlertIcon } from "@/components/ui/alert";
 
-type UserType = "candidate" | "company" | null;
+type UserType = "candidate" | "mentor" | null;
 
 interface CandidateFormData {
     firstName: string;
@@ -25,20 +25,6 @@ interface CandidateFormData {
     jobType: string;
 }
 
-interface CompanyFormData {
-    companyName: string;
-    industry: string;
-    size: string;
-    website: string;
-    description: string;
-    location: string;
-    contactName: string;
-    contactDesignation: string;
-    contactPhone: string;
-    documentType: string;
-    documentNumber: string;
-}
-
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5500";
 
 export default function OnboardingPage() {
@@ -50,8 +36,7 @@ export default function OnboardingPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isChecking, setIsChecking] = useState(true);
     const [skillInput, setSkillInput] = useState("");
-    const [otherIndustry, setOtherIndustry] = useState("");
-    const [file, setFile] = useState<File | null>(null);
+    const [mentorData, setMentorData] = useState({ name: "", department: "" });
     const [resumeUploadMode, setResumeUploadMode] = useState<'link' | 'file'>('link');
     const [isUploadingResume, setIsUploadingResume] = useState(false);
 
@@ -72,21 +57,6 @@ export default function OnboardingPage() {
         jobType: "full-time",
     });
 
-    const [companyData, setCompanyData] = useState<CompanyFormData>({
-        companyName: "",
-        industry: "",
-        size: "",
-        website: "",
-        description: "",
-        location: "",
-        contactName: "",
-        contactDesignation: "",
-        contactPhone: "",
-        documentType: "",
-        documentNumber: ""
-    });
-
-
     // Check if user already exists on mount
     useEffect(() => {
         const checkExistingUser = async () => {
@@ -102,12 +72,22 @@ export default function OnboardingPage() {
 
                 const data = await response.json();
 
+                const facultyIntent = new URLSearchParams(window.location.search).get("role") === "mentor"
+                    || localStorage.getItem("skillup_role_intent") === "mentor";
                 if (data.exists && data.redirectUrl) {
-                    router.push(data.redirectUrl);
+                    // A student account that came here to register as faculty gets the switch option there
+                    router.push(facultyIntent && data.role === "candidate" ? "/mentor" : data.redirectUrl);
                     return;
                 }
 
                 // Pre-fill name from Clerk
+                const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ");
+                if (fullName) setMentorData(prev => ({ ...prev, name: fullName }));
+                // "For faculty" links open the faculty form directly
+                if (facultyIntent) {
+                    setUserType("mentor");
+                    setStep(2);
+                }
                 if (user.firstName) {
                     setCandidateData(prev => ({ ...prev, firstName: user.firstName || "" }));
                 }
@@ -134,19 +114,6 @@ export default function OnboardingPage() {
     ) => {
         const { name, value } = e.target;
         setCandidateData((prev) => ({ ...prev, [name]: value }));
-    };
-
-    const handleCompanyChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
-    ) => {
-        const { name, value } = e.target;
-        setCompanyData((prev) => ({ ...prev, [name]: value }));
-    };
-
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files[0]) {
-            setFile(e.target.files[0]);
-        }
     };
 
     const addSkill = () => {
@@ -219,81 +186,27 @@ export default function OnboardingPage() {
 
 
 
-    const DOCUMENT_PATTERNS: Record<string, RegExp> = {
-        pan: /^[A-Z]{3}[PCHFATBLJG]{1}[A-Z]{1}[0-9]{4}[A-Z]{1}$/,
-        gst: /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
-    };
-
-    const validateDocumentNumber = (type: string, number: string): boolean => {
-        const pattern = DOCUMENT_PATTERNS[type];
-        if (!pattern) return true;
-        return pattern.test(number.toUpperCase());
-    };
-
-    const getDocumentHint = (type: string): string => {
-        if (type === 'pan') return 'Format: ABCPD1234E (10 characters)';
-        if (type === 'gst') return 'Format: 22AAAAA0000A1Z5 (15 characters)';
-        return '';
-    };
-
-    const handleCompanySubmit = async (e: React.FormEvent) => {
+    const handleMentorSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
         setError(null);
-
-        // Validate document number
-        if (companyData.documentType && companyData.documentNumber) {
-            if (!validateDocumentNumber(companyData.documentType, companyData.documentNumber)) {
-                const docLabel = companyData.documentType === 'pan' ? 'PAN' : 'GST';
-                setError(`Invalid ${docLabel} number format. Please check and try again.`);
-                setIsSubmitting(false);
-                return;
-            }
-        }
-
         try {
             const token = await getToken();
-
-            const formData = new FormData();
-            formData.append('companyName', companyData.companyName);
-            formData.append('industry', companyData.industry === 'other' ? otherIndustry : companyData.industry);
-            formData.append('size', companyData.size);
-            formData.append('website', companyData.website);
-            formData.append('description', companyData.description);
-            formData.append('location', companyData.location);
-            formData.append('email', user?.primaryEmailAddress?.emailAddress || '');
-
-            formData.append('contactPerson[name]', companyData.contactName);
-            formData.append('contactPerson[designation]', companyData.contactDesignation);
-            formData.append('contactPerson[phone]', companyData.contactPhone);
-
-            formData.append('documentType', companyData.documentType);
-            formData.append('documentNumber', companyData.documentNumber);
-
-            if (file) {
-                formData.append('document', file);
-            }
-
-            const response = await fetch(`${API_BASE_URL}/onboarding/company`, {
+            const response = await fetch(`${API_BASE_URL}/mentor/register`, {
                 method: "POST",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-                body: formData,
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                body: JSON.stringify(mentorData),
             });
-
             const data = await response.json();
-
             if (response.ok) {
-                router.push(data.redirectUrl || "/company/dashboard");
+                localStorage.removeItem("skillup_role_intent");
+                router.push(data.redirectUrl || "/mentor");
             } else {
-                console.error("Error:", data.message);
-                setError(data.message || "Failed to create company profile");
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                setError(data.message || "Failed to register as faculty");
             }
-        } catch (error) {
-            console.error("Submit error:", error);
-            setError("Failed to create profile. Please try again.");
+        } catch (err) {
+            console.error("Mentor register error:", err);
+            setError("Failed to register. Please try again.");
         } finally {
             setIsSubmitting(false);
         }
@@ -301,7 +214,7 @@ export default function OnboardingPage() {
 
     if (!isLoaded || isChecking) {
         return (
-            <div className="min-h-screen bg-white dark:bg-neutral-950 flex items-center justify-center">
+            <div className="min-h-screen bg-[var(--soft-canvas)] flex items-center justify-center">
                 <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
             </div>
         );
@@ -311,7 +224,7 @@ export default function OnboardingPage() {
     const labelStyles = "block text-sm font-medium text-neutral-900 dark:text-white mb-2";
 
     return (
-        <div className="min-h-screen bg-white dark:bg-neutral-950">
+        <div className="min-h-screen bg-[var(--soft-canvas)]">
             <div className="pt-12 pb-12 px-4">
                 <div className="max-w-2xl mx-auto">
                     {/* Header */}
@@ -319,16 +232,16 @@ export default function OnboardingPage() {
                         <h1 className="text-3xl md:text-4xl font-bold text-neutral-900 dark:text-white mb-3">
                             {step === 1
                                 ? "Welcome to SkillUp!"
-                                : userType === "company"
-                                    ? "Tell us about your company"
+                                : userType === "mentor"
+                                    ? "Set up your faculty account"
                                     : "Complete your profile"}
                         </h1>
                         <p className="text-neutral-500 dark:text-neutral-400">
                             {step === 1
-                                ? "Let's get you set up. What brings you here today?"
-                                : userType === "company"
-                                    ? "Help candidates learn more about your organization."
-                                    : "Help us match you with the perfect opportunities."}
+                                ? "Let's get you set up. Who are you joining as?"
+                                : userType === "mentor"
+                                    ? "You will create classes, share a join code with students, and set work that is checked from their practice."
+                                    : "Your companion uses this to plan your years until placements."}
                         </p>
                     </div>
 
@@ -341,29 +254,29 @@ export default function OnboardingPage() {
                                 className="group p-6 rounded-2xl bg-neutral-50 dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-800 hover:border-orange-500/50 transition-all duration-300 text-left"
                             >
                                 <div className="w-14 h-14 rounded-xl bg-orange-100 dark:bg-orange-500/10 flex items-center justify-center mb-6 group-hover:bg-orange-200 dark:group-hover:bg-orange-500/20 transition-colors">
-                                    <Briefcase className="w-7 h-7 text-orange-500" />
+                                    <GraduationCap className="w-7 h-7 text-orange-500" aria-hidden="true" />
                                 </div>
                                 <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
-                                    I'm looking for a job
+                                    I&apos;m a student
                                 </h3>
                                 <p className="text-neutral-500 dark:text-neutral-400 text-sm">
-                                    Search for opportunities and connect with top companies.
+                                    Get a year-by-year plan and an AI companion from first year to placements.
                                 </p>
                             </button>
 
-                            {/* Company Card */}
+                            {/* Faculty mentor card */}
                             <button
-                                onClick={() => handleTypeSelect("company")}
+                                onClick={() => handleTypeSelect("mentor")}
                                 className="group p-6 rounded-2xl bg-neutral-50 dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-800 hover:border-orange-500/50 transition-all duration-300 text-left"
                             >
                                 <div className="w-14 h-14 rounded-xl bg-orange-100 dark:bg-orange-500/10 flex items-center justify-center mb-6 group-hover:bg-orange-200 dark:group-hover:bg-orange-500/20 transition-colors">
-                                    <Building2 className="w-7 h-7 text-orange-500" />
+                                    <Presentation className="w-7 h-7 text-orange-500" aria-hidden="true" />
                                 </div>
                                 <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
-                                    I'm hiring for my company
+                                    I&apos;m faculty
                                 </h3>
                                 <p className="text-neutral-500 dark:text-neutral-400 text-sm">
-                                    Post jobs and find the best talent for your team.
+                                    Run classes, set work, and see where your students need help.
                                 </p>
                             </button>
                         </div>
@@ -739,288 +652,66 @@ export default function OnboardingPage() {
                         </form>
                     )}
 
-                    {/* Step 2: Company Form */}
-                    {step === 2 && userType === "company" && (
+                    {/* Step 2: Faculty mentor form */}
+                    {step === 2 && userType === "mentor" && (
                         <form
-                            onSubmit={handleCompanySubmit}
+                            onSubmit={handleMentorSubmit}
                             className="bg-neutral-50 dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-8 space-y-6"
                         >
                             {error && (
-                                <Alert variant="destructive">
-                                    <AlertIcon>
-                                        <XCircle className="h-5 w-5" />
-                                    </AlertIcon>
-                                    <AlertTitle>Error</AlertTitle>
-                                    <AlertDescription>{error}</AlertDescription>
-                                </Alert>
+                                <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
+                                    {error}
+                                </p>
                             )}
-                            {/* Company Name */}
-                            {/* Company Name */}
                             <div>
-                                <label htmlFor="companyName" className={labelStyles}>
-                                    Company Name *
-                                </label>
+                                <label htmlFor="mentorName" className={labelStyles}>Your name *</label>
                                 <input
-                                    type="text"
-                                    id="companyName"
-                                    name="companyName"
-                                    required
-                                    value={companyData.companyName}
-                                    onChange={handleCompanyChange}
+                                    id="mentorName"
+                                    value={mentorData.name}
+                                    onChange={(e) => setMentorData((prev) => ({ ...prev, name: e.target.value }))}
                                     className={inputStyles}
-                                    placeholder="e.g. Acme Inc."
+                                    placeholder="Dr. Priya Rao"
+                                    maxLength={100}
+                                    required
+                                    autoComplete="name"
+                                />
+                                <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">Students see this name in your classes.</p>
+                            </div>
+                            <div>
+                                <label htmlFor="mentorDepartment" className={labelStyles}>Department</label>
+                                <input
+                                    id="mentorDepartment"
+                                    value={mentorData.department}
+                                    onChange={(e) => setMentorData((prev) => ({ ...prev, department: e.target.value }))}
+                                    className={inputStyles}
+                                    placeholder="Computer Engineering"
+                                    maxLength={100}
+                                    autoComplete="organization-title"
                                 />
                             </div>
-
-                            {/* Industry & Size */}
-                            <div className="grid md:grid-cols-2 gap-4">
-                                <div>
-                                    <label htmlFor="industry" className={labelStyles}>
-                                        Industry *
-                                    </label>
-                                    <select
-                                        id="industry"
-                                        name="industry"
-                                        required
-                                        value={companyData.industry}
-                                        onChange={handleCompanyChange}
-                                        className={inputStyles}
-                                    >
-                                        <option value="">Select an industry</option>
-                                        <option value="technology">Technology</option>
-                                        <option value="healthcare">Healthcare</option>
-                                        <option value="finance">Finance & Banking</option>
-                                        <option value="education">Education</option>
-                                        <option value="retail">Retail & E-commerce</option>
-                                        <option value="manufacturing">Manufacturing</option>
-                                        <option value="consulting">Consulting</option>
-                                        <option value="media">Media & Entertainment</option>
-                                        <option value="other">Other</option>
-                                    </select>
-                                    {companyData.industry === 'other' && (
-                                        <input
-                                            type="text"
-                                            value={otherIndustry}
-                                            onChange={(e) => setOtherIndustry(e.target.value)}
-                                            placeholder="Enter your industry"
-                                            className={`mt-2 ${inputStyles}`}
-                                            required
-                                        />
-                                    )}
-                                </div>
-                                <div>
-                                    <label htmlFor="size" className={labelStyles}>
-                                        Company Size *
-                                    </label>
-                                    <select
-                                        id="size"
-                                        name="size"
-                                        required
-                                        value={companyData.size}
-                                        onChange={handleCompanyChange}
-                                        className={inputStyles}
-                                    >
-                                        <option value="">Select company size</option>
-                                        <option value="1-10">1-10 employees</option>
-                                        <option value="11-50">11-50 employees</option>
-                                        <option value="51-200">51-200 employees</option>
-                                        <option value="201-500">201-500 employees</option>
-                                        <option value="501-1000">501-1000 employees</option>
-                                        <option value="1000+">1000+ employees</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            {/* Website & Location */}
-                            <div className="grid md:grid-cols-2 gap-4">
-                                <div>
-                                    <label htmlFor="website" className={labelStyles}>
-                                        Website
-                                    </label>
-                                    <input
-                                        type="url"
-                                        id="website"
-                                        name="website"
-                                        value={companyData.website}
-                                        onChange={handleCompanyChange}
-                                        className={inputStyles}
-                                        placeholder="https://www.example.com"
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="location" className={labelStyles}>
-                                        Headquarters Location *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="location"
-                                        name="location"
-                                        required
-                                        value={companyData.location}
-                                        onChange={handleCompanyChange}
-                                        className={inputStyles}
-                                        placeholder="Mumbai, India"
-                                    />
-                                </div>
-                            </div>
-
-                            {/* Contact Person */}
-                            <div className="border-t border-neutral-200 dark:border-neutral-800 pt-6">
-                                <h3 className="text-lg font-medium text-neutral-900 dark:text-white mb-4">Contact Person</h3>
-                                <div className="grid md:grid-cols-3 gap-4">
-                                    <div className="md:col-span-1">
-                                        <label htmlFor="contactName" className={labelStyles}>
-                                            Full Name *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="contactName"
-                                            name="contactName"
-                                            required
-                                            value={companyData.contactName}
-                                            onChange={handleCompanyChange}
-                                            className={inputStyles}
-                                            placeholder="John Doe"
-                                        />
-                                    </div>
-                                    <div className="md:col-span-1">
-                                        <label htmlFor="contactDesignation" className={labelStyles}>
-                                            Designation *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="contactDesignation"
-                                            name="contactDesignation"
-                                            required
-                                            value={companyData.contactDesignation}
-                                            onChange={handleCompanyChange}
-                                            className={inputStyles}
-                                            placeholder="HR Manager"
-                                        />
-                                    </div>
-                                    <div className="md:col-span-1">
-                                        <label htmlFor="contactPhone" className={labelStyles}>
-                                            Phone Number *
-                                        </label>
-                                        <input
-                                            type="tel"
-                                            id="contactPhone"
-                                            name="contactPhone"
-                                            required
-                                            value={companyData.contactPhone}
-                                            onChange={handleCompanyChange}
-                                            className={inputStyles}
-                                            placeholder="+91 98765 43210"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-
-                            {/* Verification Document */}
-                            <div className="border-t border-neutral-200 dark:border-neutral-800 pt-6">
-                                <h3 className="text-lg font-medium text-neutral-900 dark:text-white mb-4">Verification Document</h3>
-                                <div className="grid md:grid-cols-2 gap-4">
-                                    <div className="md:col-span-1">
-                                        <label htmlFor="documentType" className={labelStyles}>
-                                            Document Type *
-                                        </label>
-                                        <select
-                                            id="documentType"
-                                            name="documentType"
-                                            required
-                                            value={companyData.documentType}
-                                            onChange={handleCompanyChange}
-                                            className={inputStyles}
-                                        >
-                                            <option value="">Select Document Type</option>
-                                            <option value="gst">GST Number</option>
-                                            <option value="pan">PAN Card</option>
-                                        </select>
-                                    </div>
-                                    <div className="md:col-span-1">
-                                        <label htmlFor="documentNumber" className={labelStyles}>
-                                            Document Number *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="documentNumber"
-                                            name="documentNumber"
-                                            required
-                                            value={companyData.documentNumber}
-                                            onChange={(e) => {
-                                                const uppercased = e.target.value.toUpperCase();
-                                                handleCompanyChange({
-                                                    ...e,
-                                                    target: { ...e.target, name: 'documentNumber', value: uppercased }
-                                                } as React.ChangeEvent<HTMLInputElement>);
-                                            }}
-                                            className={`${inputStyles} ${companyData.documentType && companyData.documentNumber && !validateDocumentNumber(companyData.documentType, companyData.documentNumber) ? 'border-red-500 dark:border-red-500 focus:border-red-500' : companyData.documentType && companyData.documentNumber && validateDocumentNumber(companyData.documentType, companyData.documentNumber) ? 'border-green-500 dark:border-green-500 focus:border-green-500' : ''}`}
-                                            placeholder={companyData.documentType === 'pan' ? 'ABCPD1234E' : companyData.documentType === 'gst' ? '22AAAAA0000A1Z5' : 'Select document type first'}
-                                            maxLength={companyData.documentType === 'pan' ? 10 : companyData.documentType === 'gst' ? 15 : 20}
-                                        />
-                                        {companyData.documentType && (
-                                            <div className="mt-1.5 flex items-center gap-1.5">
-                                                {companyData.documentNumber ? (
-                                                    validateDocumentNumber(companyData.documentType, companyData.documentNumber) ? (
-                                                        <span className="text-xs text-green-500 font-medium">✓ Valid {companyData.documentType.toUpperCase()} format</span>
-                                                    ) : (
-                                                        <span className="text-xs text-red-500 font-medium">✗ Invalid format — {getDocumentHint(companyData.documentType)}</span>
-                                                    )
-                                                ) : (
-                                                    <span className="text-xs text-neutral-400 dark:text-neutral-500">{getDocumentHint(companyData.documentType)}</span>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="md:col-span-2">
-                                        <label className={labelStyles}>Upload Document Image</label>
-                                        <div className="flex items-center gap-4">
-                                            <button
-                                                type="button"
-                                                onClick={() => document.getElementById('file-upload')?.click()}
-                                                className="flex items-center gap-2 px-4 py-3 bg-neutral-100 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-800 rounded-lg text-neutral-900 dark:text-white hover:border-orange-500 transition-colors"
-                                            >
-                                                <Upload className="w-5 h-5 text-orange-500" />
-                                                {file ? 'Change File' : 'Select File'}
-                                            </button>
-                                            {file && <span className="text-sm text-neutral-500 dark:text-neutral-400">{file.name}</span>}
-                                            <input
-                                                id="file-upload"
-                                                type="file"
-                                                className="hidden"
-                                                onChange={handleFileChange}
-                                                accept="image/*,application/pdf"
-                                            />
-                                        </div>
-                                        <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-2">Accepts Images and PDFs. Max 5MB.</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Submit Button */}
+                            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                                This account becomes a faculty account. Students use their own accounts and join your classes with a code.
+                            </p>
                             <button
                                 type="submit"
-                                disabled={isSubmitting || !companyData.companyName || !companyData.industry || !companyData.size || !companyData.location || !companyData.contactName || !companyData.contactDesignation || !companyData.contactPhone || !companyData.documentType || !companyData.documentNumber || !file}
+                                disabled={isSubmitting || !mentorData.name.trim()}
                                 className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-500/50 text-white font-medium rounded-lg transition-colors cursor-pointer"
                             >
                                 {isSubmitting ? (
                                     <>
-                                        <Loader2 className="w-5 h-5 animate-spin" />
-                                        Creating Profile...
+                                        <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />
+                                        Setting up...
                                     </>
                                 ) : (
                                     <>
-                                        Complete Profile
-                                        <ArrowRight className="w-5 h-5" />
+                                        Continue to my classes
+                                        <ArrowRight className="w-5 h-5" aria-hidden="true" />
                                     </>
                                 )}
                             </button>
-
-                            {/* Back Button */}
                             <button
                                 type="button"
-                                onClick={() => setStep(1)}
+                                onClick={() => { setStep(1); setError(null); }}
                                 className="w-full text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white text-sm transition-colors"
                             >
                                 ← Go back

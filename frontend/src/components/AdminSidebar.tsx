@@ -5,10 +5,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
     LayoutDashboard,
-    Briefcase,
     Users,
-    Building2,
     BarChart3,
+    Crosshair,
     MessageSquare,
     X
 } from 'lucide-react';
@@ -16,9 +15,8 @@ import { cn } from '@/lib/utils';
 
 const navItems = [
     { label: 'Dashboard', href: '/admin/dashboard', icon: <LayoutDashboard size={20} /> },
-    { label: 'Companies', href: '/admin/companies', icon: <Building2 size={20} /> },
-    { label: 'Users', href: '/admin/users', icon: <Users size={20} /> },
-    { label: 'Jobs', href: '/admin/jobs', icon: <Briefcase size={20} /> },
+    { label: 'Students', href: '/admin/users', icon: <Users size={20} /> },
+    { label: 'Placement radar', href: '/admin/radar', icon: <Crosshair size={20} /> },
     { label: 'Analytics', href: '/admin/analytics', icon: <BarChart3 size={20} /> },
     { label: 'Reviews', href: '/admin/reviews', icon: <MessageSquare size={20} /> },
 ];

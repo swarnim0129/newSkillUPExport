@@ -1,6 +1,7 @@
 const SavedRoadmap = require('../models/SavedRoadmap');
 const { deriveTopicCluster } = require('../services/topicClusterService');
 const { recordEvent } = require('../services/gamificationService');
+const { recordEvidence } = require('../services/evidenceService');
 
 function isTruthyEnv(value, defaultValue) {
   if (value === undefined) return defaultValue;
@@ -111,6 +112,18 @@ async function emitRoadmapEvent(req, payload) {
   } catch (eventError) {
     console.error('[roadmap] Failed to emit gamification event:', eventError.message);
   }
+}
+
+// Tell the journey about roadmap progress. XP is already awarded by emitRoadmapEvent.
+function reportRoadmapEvidence(req, roadmap, type, refId, meta = {}) {
+  recordEvidence({
+    clerkId: req.clerkId,
+    type,
+    topic: roadmap.topic,
+    refId,
+    meta,
+    skipXp: true,
+  }).catch((err) => console.error('[roadmap] Failed to record evidence:', err.message));
 }
 
 exports.saveRoadmap = async (req, res) => {
@@ -259,7 +272,9 @@ exports.updateRoadmapNode = async (req, res) => {
     roadmap.progressPercent = progress.progressPercent;
     roadmap.completedNodesCount = progress.completedNodesCount;
     roadmap.totalNodesCount = progress.totalNodesCount;
-    roadmap.completedAt = progress.completedAt;
+    // Keep the original completion date; only set or clear it when the state flips
+    if (!progress.completedAt) roadmap.completedAt = null;
+    else if (!roadmap.completedAt) roadmap.completedAt = progress.completedAt;
 
     await roadmap.save();
 
@@ -285,10 +300,15 @@ exports.updateRoadmapNode = async (req, res) => {
           roadmapDifficulty,
         },
       });
+      reportRoadmapEvidence(req, roadmap, 'roadmap_node_completed', `${roadmap._id}:${index}`, {
+        nodeTopic: node.topic || null,
+        progressPercent: roadmap.progressPercent,
+      });
     }
 
     const nowComplete = roadmap.completedAt != null;
     if (!wasComplete && nowComplete) {
+      reportRoadmapEvidence(req, roadmap, 'roadmap_completed', String(roadmap._id));
       await emitRoadmapEvent(req, {
         eventType: 'roadmap_completed',
         source: 'roadmap',
@@ -369,6 +389,7 @@ exports.completeRoadmap = async (req, res) => {
     }
 
     if (!wasComplete) {
+      reportRoadmapEvidence(req, roadmap, 'roadmap_completed', String(roadmap._id));
       await emitRoadmapEvent(req, {
         eventType: 'roadmap_completed',
         source: 'roadmap',
@@ -415,6 +436,19 @@ exports.adaptActiveRoadmap = async (req, res) => {
       return res.status(404).json({
         message: 'No active roadmap found to adapt',
         adapted: false,
+      });
+    }
+
+    // One open review node per failed chapter is enough
+    const alreadyQueued = (roadmap.nodes || []).some(
+      (n) => n.triggeredBy === chapterTitle && n.status !== 'completed'
+    );
+    if (alreadyQueued) {
+      return res.json({
+        success: true,
+        adapted: false,
+        roadmap,
+        message: `A review of "${chapterTitle}" is already in your roadmap.`,
       });
     }
 
@@ -488,6 +522,7 @@ exports.adaptActiveRoadmap = async (req, res) => {
       completedAt: null,
       timeSpentMinutes: 0,
       xpAwarded: 0,
+      triggeredBy: chapterTitle,
     };
 
     // Splice into the nodes array

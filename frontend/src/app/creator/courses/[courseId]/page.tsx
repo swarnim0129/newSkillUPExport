@@ -39,7 +39,7 @@ function extractYoutubeId(url: string): string | null {
 // Fire-and-forget transcript generation via backend2
 async function triggerTranscriptGeneration(youtubeUrl: string): Promise<boolean> {
     try {
-        const res = await fetch('http://localhost:8000/api/yt_transcript/transcribe', {
+        const res = await fetch('/api2/api/yt_transcript/transcribe', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ url: youtubeUrl }),
@@ -336,7 +336,7 @@ export default function CourseEditorPage() {
                         whileTap={{ scale: 0.98 }}
                         onClick={handleSave}
                         disabled={saving || publishing}
-                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-[#1a1a1a] hover:bg-slate-200 dark:hover:bg-[#2a2a2a] border border-slate-200 dark:border-[#2a2a2a] transition-all text-sm disabled:opacity-50"
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-[var(--soft-raised)] hover:bg-slate-200 dark:hover:bg-[var(--soft-line)] border border-slate-200 dark:border-[var(--soft-line)] transition-all text-sm disabled:opacity-50"
                     >
                         {saving ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
@@ -424,7 +424,7 @@ export default function CourseEditorPage() {
             </AnimatePresence>
 
             <div className="space-y-6">
-                <div className="bg-white dark:bg-[#121212] rounded-2xl border border-slate-200 dark:border-[#2a2a2a] p-6">
+                <div className="bg-white dark:bg-[var(--soft-surface)] rounded-2xl border border-slate-200 dark:border-[var(--soft-line)] p-6">
                     <h2 className="font-bold text-slate-800 dark:text-white mb-4">Course Details</h2>
                     
                     <div className="space-y-4">
@@ -437,7 +437,7 @@ export default function CourseEditorPage() {
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 placeholder="e.g. Complete Python Masterclass"
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1a1a1a] text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[var(--soft-raised)] text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
                             />
                         </div>
                         
@@ -450,7 +450,7 @@ export default function CourseEditorPage() {
                                 onChange={(e) => setDescription(e.target.value)}
                                 placeholder="Describe what students will learn..."
                                 rows={4}
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1a1a1a] text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 resize-none"
+                                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[var(--soft-raised)] text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 resize-none"
                             />
                         </div>
                         
@@ -462,7 +462,7 @@ export default function CourseEditorPage() {
                                 <select
                                     value={category}
                                     onChange={(e) => setCategory(e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1a1a1a] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[var(--soft-raised)] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40"
                                 >
                                     <option value="">Select category</option>
                                     {CATEGORIES.map((cat) => (
@@ -481,14 +481,14 @@ export default function CourseEditorPage() {
                                     onChange={(e) => setPricePerMinute(parseFloat(e.target.value) || 0)}
                                     min="0"
                                     step="0.01"
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1a1a1a] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[var(--soft-raised)] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40"
                                 />
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-[#121212] rounded-2xl border border-slate-200 dark:border-[#2a2a2a] p-6">
+                <div className="bg-white dark:bg-[var(--soft-surface)] rounded-2xl border border-slate-200 dark:border-[var(--soft-line)] p-6">
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="font-bold text-slate-800 dark:text-white">Videos ({videos.length})</h2>
                         <button
@@ -512,7 +512,7 @@ export default function CourseEditorPage() {
                             {videos.map((video, index) => (
                                 <div
                                     key={video._id}
-                                    className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-[#1a1a1a] border border-slate-200 dark:border-slate-700"
+                                    className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 dark:bg-[var(--soft-raised)] border border-slate-200 dark:border-slate-700"
                                 >
                                     <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 font-bold text-sm">
                                         {index + 1}
@@ -551,7 +551,7 @@ export default function CourseEditorPage() {
                             initial={{ scale: 0.95 }}
                             animate={{ scale: 1 }}
                             exit={{ scale: 0.95 }}
-                            className="bg-white dark:bg-[#121212] rounded-2xl border border-slate-200 dark:border-[#2a2a2a] p-6 w-full max-w-md"
+                            className="bg-white dark:bg-[var(--soft-surface)] rounded-2xl border border-slate-200 dark:border-[var(--soft-line)] p-6 w-full max-w-md"
                         >
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-lg font-bold text-slate-800 dark:text-white">
@@ -559,7 +559,7 @@ export default function CourseEditorPage() {
                                 </h2>
                                 <button
                                     onClick={() => setShowAddVideo(false)}
-                                    className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-[#1a1a1a] transition-colors"
+                                    className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-[var(--soft-raised)] transition-colors"
                                 >
                                     <X className="w-5 h-5 text-slate-500" />
                                 </button>
@@ -575,7 +575,7 @@ export default function CourseEditorPage() {
                                         value={newVideoTitle}
                                         onChange={(e) => setNewVideoTitle(e.target.value)}
                                         placeholder="e.g. Introduction to Variables"
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1a1a1a] text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[var(--soft-raised)] text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
                                     />
                                 </div>
 
@@ -588,7 +588,7 @@ export default function CourseEditorPage() {
                                         value={newVideoUrl}
                                         onChange={(e) => setNewVideoUrl(e.target.value)}
                                         placeholder="https://www.youtube.com/watch?v=..."
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1a1a1a] text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[var(--soft-raised)] text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
                                     />
                                     <p className="text-[11px] text-slate-400 mt-1">Supports youtube.com/watch, youtu.be, and shorts links</p>
                                 </div>
@@ -602,7 +602,7 @@ export default function CourseEditorPage() {
                                         value={newVideoThumbnail}
                                         onChange={(e) => setNewVideoThumbnail(e.target.value)}
                                         placeholder="https://..."
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1a1a1a] text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[var(--soft-raised)] text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
                                     />
                                 </div>
                             </div>
@@ -610,7 +610,7 @@ export default function CourseEditorPage() {
                             <div className="flex gap-3 mt-6">
                                 <button
                                     onClick={() => setShowAddVideo(false)}
-                                    className="flex-1 py-3 rounded-xl font-medium text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-[#1a1a1a] transition-colors"
+                                    className="flex-1 py-3 rounded-xl font-medium text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-[var(--soft-raised)] transition-colors"
                                 >
                                     Cancel
                                 </button>

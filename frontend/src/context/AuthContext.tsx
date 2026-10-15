@@ -18,10 +18,6 @@ interface RegisterData {
     name: string;
     email: string;
     password: string;
-    role: 'user' | 'company';
-    companyName?: string;
-    website?: string;
-    description?: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -50,13 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(userData as User);
 
         // Redirect based on role
-        if (userData.role === 'admin') {
-            router.push('/admin/dashboard');
-        } else if (userData.role === 'company') {
-            router.push('/company/dashboard');
-        } else {
-            router.push('/');
-        }
+        router.push(userData.role === 'admin' ? '/admin/dashboard' : '/');
     };
 
     const register = async (data: RegisterData) => {
@@ -67,12 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('user', JSON.stringify(userData));
         setUser(userData as User);
 
-        // Redirect based on role
-        if (userData.role === 'company') {
-            router.push('/company/dashboard');
-        } else {
-            router.push('/');
-        }
+        router.push('/');
     };
 
     const logout = () => {

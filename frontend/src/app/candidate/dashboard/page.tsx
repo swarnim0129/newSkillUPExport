@@ -102,7 +102,7 @@ export default function DashboardPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {videos.map((vid) => (
                     <a href={`https://www.youtube.com/watch?v=${vid.id}`} target="_blank" rel="noopener noreferrer" key={vid.id} className="group relative bg-white dark:bg-[#111] rounded-xl overflow-hidden shadow-sm dark:shadow-black/20 border border-slate-100 dark:border-[#222] transition-colors hover:border-blue-400 dark:hover:border-blue-500">
-                        <div className="aspect-video relative overflow-hidden bg-slate-100 dark:bg-[#1a1a1a]">
+                        <div className="aspect-video relative overflow-hidden bg-slate-100 dark:bg-[var(--soft-raised)]">
                             <img src={vid.thumb} alt={vid.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                             <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
                             <div className="absolute bottom-2 right-2 bg-black/80 px-2 py-0.5 rounded text-[10px] font-bold text-white tracking-wide">
@@ -128,7 +128,7 @@ export default function DashboardPage() {
     );
 
     return (
-        <div className="min-h-screen bg-slate-50/50 dark:bg-[#0a0a0a] p-4 sm:p-6 lg:p-8 space-y-8 font-sans text-slate-900 dark:text-white w-full">
+        <div className="min-h-screen bg-slate-50/50 dark:bg-[var(--soft-sunken)] p-4 sm:p-6 lg:p-8 space-y-8 font-sans text-slate-900 dark:text-white w-full">
             
             {/* Header & Motivation Banner */}
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-6 md:p-8 text-white shadow-lg relative overflow-hidden">
@@ -149,7 +149,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Active Roadmap Progress */}
-            <Card className="border-none shadow-sm dark:shadow-black/20 bg-white dark:bg-[#121212] rounded-2xl overflow-hidden">
+            <Card className="border-none shadow-sm dark:shadow-black/20 bg-white dark:bg-[var(--soft-surface)] rounded-2xl overflow-hidden">
                 <CardContent className="p-6 md:p-8">
                     <div className="flex flex-col md:flex-row justify-between md:items-end gap-4 mb-6">
                         <div>
@@ -164,7 +164,7 @@ export default function DashboardPage() {
                         </div>
                     </div>
                     
-                    <div className="w-full h-3 sm:h-4 bg-slate-100 dark:bg-[#1a1a1a] rounded-full overflow-hidden">
+                    <div className="w-full h-3 sm:h-4 bg-slate-100 dark:bg-[var(--soft-raised)] rounded-full overflow-hidden">
                         <div 
                             className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all duration-1000 ease-out relative"
                             style={{ width: `${stats?.currentRoadmapProgress || 0}%` }}
@@ -183,9 +183,9 @@ export default function DashboardPage() {
 
             {/* Stats Overview */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="border-none shadow-sm dark:shadow-black/20 bg-white dark:bg-[#121212] rounded-2xl p-6 flex flex-col justify-between group hover:ring-2 ring-slate-200 dark:ring-[#2a2a2a] transition-all">
+                <Card className="border-none shadow-sm dark:shadow-black/20 bg-white dark:bg-[var(--soft-surface)] rounded-2xl p-6 flex flex-col justify-between group hover:ring-2 ring-slate-200 dark:ring-[var(--soft-line)] transition-all">
                     <div>
-                        <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-[#1a1a1a] flex items-center justify-center mb-4">
+                        <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-[var(--soft-raised)] flex items-center justify-center mb-4">
                             <FileText className="w-5 h-5 text-slate-600 dark:text-slate-400" />
                         </div>
                         <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Resume Score</h3>
@@ -199,7 +199,7 @@ export default function DashboardPage() {
                     </Link>
                 </Card>
 
-                <Card className="border-none shadow-sm dark:shadow-black/20 bg-white dark:bg-[#121212] rounded-2xl p-6 flex flex-col justify-between group hover:ring-2 ring-slate-200 dark:ring-[#2a2a2a] transition-all">
+                <Card className="border-none shadow-sm dark:shadow-black/20 bg-white dark:bg-[var(--soft-surface)] rounded-2xl p-6 flex flex-col justify-between group hover:ring-2 ring-slate-200 dark:ring-[var(--soft-line)] transition-all">
                     <div>
                         <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center mb-4">
                             <Route className="w-5 h-5 text-orange-500" />
@@ -214,7 +214,7 @@ export default function DashboardPage() {
                     </Link>
                 </Card>
 
-                <Card className="border-none shadow-sm dark:shadow-black/20 bg-white dark:bg-[#121212] rounded-2xl p-6 flex flex-col justify-between group hover:ring-2 ring-slate-200 dark:ring-[#2a2a2a] transition-all">
+                <Card className="border-none shadow-sm dark:shadow-black/20 bg-white dark:bg-[var(--soft-surface)] rounded-2xl p-6 flex flex-col justify-between group hover:ring-2 ring-slate-200 dark:ring-[var(--soft-line)] transition-all">
                     <div>
                         <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center mb-4">
                             <MessageSquare className="w-5 h-5 text-emerald-500" />

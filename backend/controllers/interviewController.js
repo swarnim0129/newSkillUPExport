@@ -1,6 +1,9 @@
 const Interview = require("../models/Interview");
-const { getGenAI, hasKeys } = require("../utils/geminiKeyManager");
+const { hasKeys } = require("../utils/geminiKeyManager");
+const { generateJson } = require("../services/aiJson");
 const UserActivity = require("../models/UserActivity");
+const { quoteCharge, applyCharge, refundCharge } = require("../services/creditService");
+const { recordEvidence } = require("../services/evidenceService");
 
 // POST /api/interview/:id/generate-feedback — AI-generate feedback from transcript
 exports.generateFeedback = async (req, res) => {
@@ -37,8 +40,6 @@ exports.generateFeedback = async (req, res) => {
       )
       .join("\n");
 
-    const genAI = getGenAI();
-    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
 
     const prompt = `You are an expert interview evaluator. Analyze the following interview transcript for a ${interview.seniority} ${interview.role} position (${interview.category} interview${interview.topic ? `, topic: ${interview.topic}` : ""}).
 
@@ -55,23 +56,13 @@ Evaluate the candidate and respond ONLY with valid JSON (no markdown, no code fe
   "hiring_recommendation": "<one of: Strong Hire, Hire, Lean Hire, Lean No Hire, No Hire>"
 }`;
 
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text().trim();
-
-    // Parse the JSON response (strip code fences if present)
     let feedbackData;
     try {
-      const cleaned = responseText
-        .replace(/```json\s*/g, "")
-        .replace(/```\s*/g, "")
-        .trim();
-      feedbackData = JSON.parse(cleaned);
-    } catch (parseErr) {
-      console.error(
-        "[Generate Feedback] Failed to parse Gemini response:",
-        responseText.substring(0, 300),
-      );
-      return res.status(500).json({ error: "Failed to parse AI response" });
+      // Retries and backup models: Gemini often answers "high demand"
+      feedbackData = await generateJson(prompt);
+    } catch (aiError) {
+      console.error("[Generate Feedback] AI error:", aiError.message);
+      return res.status(503).json({ error: "The AI evaluator is busy right now. Please try again in a minute." });
     }
 
     // Save to database
@@ -91,6 +82,23 @@ Evaluate the candidate and respond ONLY with valid JSON (no markdown, no code fe
     }));
     interview.status = "completed";
     await interview.save();
+
+    // Scores are 1-10; evidence uses 0-100
+    const technical = Number(interview.feedback.technical_score) || 0;
+    const communication = Number(interview.feedback.communication_score) || 0;
+    recordEvidence({
+      clerkId: req.clerkId,
+      type: "interview_completed",
+      topic: interview.role,
+      score: Math.round(((technical + communication) / 2) * 10),
+      refId: String(interview._id),
+      meta: {
+        technical,
+        communication,
+        category: interview.category,
+        weaknesses: (interview.feedback.weaknesses || []).slice(0, 4),
+      },
+    }).catch((err) => console.error("Evidence log error:", err.message));
 
     res.json({ success: true, feedback: interview.feedback });
   } catch (error) {
@@ -133,37 +141,36 @@ exports.createInterview = async (req, res) => {
     }
 
     const INTERVIEW_COST = 10;
-    let creditCharged = 0;
-
-    if (!candidate.freeInterviewUsed) {
-      // First interview is free — mark as used
-      candidate.freeInterviewUsed = true;
-    } else {
-      // Subsequent interviews cost credits
-      if (candidate.credits < INTERVIEW_COST) {
-        return res.status(402).json({
-          error: "Insufficient credits for AI interview",
-          creditsRequired: INTERVIEW_COST,
-          creditsAvailable: candidate.credits,
-          freeUsed: true,
-        });
-      }
-      candidate.credits -= INTERVIEW_COST;
-      creditCharged = INTERVIEW_COST;
+    // First interview is free; later ones cost credits
+    const quote = quoteCharge(candidate, { freeFlag: "freeInterviewUsed", cost: INTERVIEW_COST });
+    const charged = quote.ok ? await applyCharge(candidate._id, quote) : null;
+    if (!charged) {
+      return res.status(402).json({
+        error: "Insufficient credits for AI interview",
+        creditsRequired: INTERVIEW_COST,
+        creditsAvailable: candidate.credits,
+        freeUsed: true,
+      });
     }
-    await candidate.save();
+    const creditCharged = quote.cost;
     // --- End credit enforcement ---
 
-    const interview = await Interview.create({
-      clerkId: req.clerkId,
-      role,
-      seniority,
-      topic: topic || "General Industry Standards",
-      category,
-      vapiCallId: vapiCallId || undefined,
-      transcript: [],
-      status: "pending",
-    });
+    let interview;
+    try {
+      interview = await Interview.create({
+        clerkId: req.clerkId,
+        role,
+        seniority,
+        topic: topic || "General Industry Standards",
+        category,
+        vapiCallId: vapiCallId || undefined,
+        transcript: [],
+        status: "pending",
+      });
+    } catch (createError) {
+      await refundCharge(candidate._id, quote);
+      throw createError;
+    }
 
     // Log activity for dashboard
     UserActivity.create({
@@ -176,7 +183,7 @@ exports.createInterview = async (req, res) => {
       success: true,
       interviewId: interview._id,
       creditCharged,
-      creditsRemaining: candidate.credits,
+      creditsRemaining: charged.credits,
     });
   } catch (error) {
     console.error("Interview create error:", error);

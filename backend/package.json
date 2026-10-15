@@ -5,7 +5,8 @@
     "main": "server.js",
     "scripts": {
         "start": "node server.js",
-        "dev": "nodemon server.js"
+        "dev": "nodemon server.js",
+        "build:dsa": "node scripts/buildDsaBank.js"
     },
     "dependencies": {
         "@clerk/backend": "^1.0.0",

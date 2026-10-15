@@ -44,6 +44,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { TutorSubjectData, TutorChapter, QuizQuestion } from '@/lib/tutor-types';
+import { scrollIntoPanel } from '@/lib/scroll';
 
 // ─── Icon Map ───────────────────────────────────────────────────────────────
 const ICON_MAP: Record<string, React.ReactNode> = {
@@ -139,7 +140,7 @@ export default function TutorSessionPage({
 
   // Auto-scroll transcript
   useEffect(() => {
-    transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    scrollIntoPanel(transcriptEndRef.current);
   }, [transcript]);
 
   // Stream to video element once the voice phase renders it in the DOM
@@ -484,6 +485,26 @@ export default function TutorSessionPage({
     const total = quizQuestions.length;
     const percentage = total > 0 ? score / total : 1;
 
+    // Report the result to the journey so skill levels and the plan can react.
+    // Each attempt counts, so the id includes the time of the attempt.
+    if (chapter && subject && total > 0) {
+      getToken()
+        .then((token) =>
+          fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5500/api'}/journey/evidence`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({
+              type: 'quiz_completed',
+              topic: subject.name,
+              score,
+              total,
+              refId: `${subject._id}:${chapter.number}:${Date.now()}`,
+            }),
+          })
+        )
+        .catch(() => { /* the quiz result itself is already saved */ });
+    }
+
     if (percentage < 0.6 && chapter && subject) {
       // Failed quiz — trigger Agent-to-Agent Handoff
       setSmartNudge({
@@ -571,7 +592,7 @@ export default function TutorSessionPage({
   const nextChapter = subject.chapters.find((c) => c.number === chapNum + 1);
 
   return (
-    <div className="min-h-screen bg-slate-50/50 dark:bg-[#0a0a0a] font-sans text-slate-900 dark:text-white w-full">
+    <div className="min-h-screen bg-slate-50/50 dark:bg-[var(--soft-sunken)] font-sans text-slate-900 dark:text-white w-full">
       {/* Back button */}
       <div className="px-4 sm:px-6 lg:px-8 pt-4">
         <button
@@ -587,8 +608,8 @@ export default function TutorSessionPage({
       <div className="flex flex-col lg:flex-row gap-0 lg:gap-6 p-4 sm:p-6 lg:p-8 pt-4">
         {/* Sidebar — Chapter List */}
         <div className="w-full lg:w-64 flex-shrink-0 mb-6 lg:mb-0">
-          <div className="bg-white dark:bg-[#121212] rounded-2xl shadow-sm dark:shadow-black/20 p-4 sticky top-6">
-            <div className="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-[#1e1e1e]">
+          <div className="bg-white dark:bg-[var(--soft-surface)] rounded-2xl shadow-sm dark:shadow-black/20 p-4 sticky top-6">
+            <div className="flex items-center gap-3 mb-4 pb-3 border-b border-slate-100 dark:border-[var(--soft-line)]">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500/10 to-indigo-500/10 dark:from-violet-500/20 dark:to-indigo-500/20 flex items-center justify-center text-violet-600 dark:text-violet-400">
                 {getSubjectIcon(subject.icon)}
               </div>
@@ -612,7 +633,7 @@ export default function TutorSessionPage({
                     className={`w-full text-left flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs transition-all cursor-pointer ${
                       isCurrent
                         ? 'bg-violet-50 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/20'
-                        : 'hover:bg-slate-50 dark:hover:bg-[#1a1a1a]'
+                        : 'hover:bg-slate-50 dark:hover:bg-[var(--soft-raised)]'
                     }`}
                   >
                     {getStatusIcon(isCurrent && phase === 'voice' ? 'in_progress' : ch.status)}
@@ -664,7 +685,7 @@ export default function TutorSessionPage({
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white dark:bg-[#121212] rounded-2xl shadow-sm dark:shadow-black/20 p-10 flex flex-col items-center justify-center min-h-[500px]"
+                className="bg-white dark:bg-[var(--soft-surface)] rounded-2xl shadow-sm dark:shadow-black/20 p-10 flex flex-col items-center justify-center min-h-[500px]"
               >
                 <div className="relative">
                   <div className="w-20 h-20 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center shadow-xl shadow-violet-500/25 animate-pulse">
@@ -867,7 +888,7 @@ function ChapterIntro({
   quizLoading: boolean;
 }) {
   return (
-    <div className="bg-white dark:bg-[#121212] rounded-2xl shadow-sm dark:shadow-black/20 p-6 sm:p-8 lg:p-10">
+    <div className="bg-white dark:bg-[var(--soft-surface)] rounded-2xl shadow-sm dark:shadow-black/20 p-6 sm:p-8 lg:p-10">
       {/* Chapter badge */}
       <div className="flex items-center gap-3 mb-6">
         <span className="px-3 py-1 rounded-lg text-xs font-bold bg-violet-100 dark:bg-violet-500/15 text-violet-700 dark:text-violet-300 uppercase tracking-wider">
@@ -898,7 +919,7 @@ function ChapterIntro({
       </p>
 
       {/* What you'll learn */}
-      <div className="bg-slate-50 dark:bg-[#0a0a0a] rounded-xl p-6 mb-8 border border-slate-100 dark:border-[#1e1e1e]">
+      <div className="bg-slate-50 dark:bg-[var(--soft-sunken)] rounded-xl p-6 mb-8 border border-slate-100 dark:border-[var(--soft-line)]">
         <h3 className="text-sm font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-violet-500" />
           In this lesson
@@ -968,7 +989,7 @@ function ChapterIntro({
       </div>
 
       {/* Navigation */}
-      <div className="flex items-center justify-between pt-6 border-t border-slate-100 dark:border-[#1e1e1e]">
+      <div className="flex items-center justify-between pt-6 border-t border-slate-100 dark:border-[var(--soft-line)]">
         {prevChapter ? (
           <button
             onClick={() => onGoToChapter(prevChapter.number)}
@@ -1028,9 +1049,9 @@ function VoiceSession({
   onGoToChapter: (num: number) => void;
 }) {
   return (
-    <div className="bg-white dark:bg-[#121212] rounded-2xl shadow-sm dark:shadow-black/20 overflow-hidden">
+    <div className="bg-white dark:bg-[var(--soft-surface)] rounded-2xl shadow-sm dark:shadow-black/20 overflow-hidden">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-slate-100 dark:border-[#1e1e1e] flex items-center justify-between">
+      <div className="px-6 py-4 border-b border-slate-100 dark:border-[var(--soft-line)] flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
           <span className="text-sm font-bold text-slate-800 dark:text-white">
@@ -1067,7 +1088,7 @@ function VoiceSession({
 
         {/* Right: Live Transcript */}
         <div className="lg:w-1/2 flex flex-col h-[400px] lg:h-[500px]">
-          <div className="px-5 py-3 border-b border-slate-100 dark:border-[#1e1e1e] flex-shrink-0">
+          <div className="px-5 py-3 border-b border-slate-100 dark:border-[var(--soft-line)] flex-shrink-0">
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
               Live Transcript
             </h3>
@@ -1076,7 +1097,7 @@ function VoiceSession({
           <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
             {transcript.length === 0 && (
               <div className="flex flex-col items-center justify-center h-full text-center">
-                <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-[#1a1a1a] flex items-center justify-center mb-3">
+                <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-[var(--soft-raised)] flex items-center justify-center mb-3">
                   <Mic className="w-5 h-5 text-slate-400" />
                 </div>
                 <p className="text-sm text-slate-400">
@@ -1113,7 +1134,7 @@ function VoiceSession({
                   className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
                     msg.role === 'user'
                       ? 'bg-blue-500 text-white rounded-br-md'
-                      : 'bg-slate-100 dark:bg-[#1a1a1a] text-slate-800 dark:text-slate-200 rounded-bl-md'
+                      : 'bg-slate-100 dark:bg-[var(--soft-raised)] text-slate-800 dark:text-slate-200 rounded-bl-md'
                   }`}
                 >
                   {msg.content}
@@ -1127,7 +1148,7 @@ function VoiceSession({
       </div>
 
       {/* Controls bar */}
-      <div className="px-6 py-4 border-t border-slate-100 dark:border-[#1e1e1e]">
+      <div className="px-6 py-4 border-t border-slate-100 dark:border-[var(--soft-line)]">
         <div className="flex items-center justify-between">
           <div>
             {prevChapter && (
@@ -1147,7 +1168,7 @@ function VoiceSession({
               className={`p-3 rounded-full transition-all cursor-pointer ${
                 isMuted
                   ? 'bg-red-100 dark:bg-red-500/15 text-red-600 dark:text-red-400'
-                  : 'bg-slate-100 dark:bg-[#1a1a1a] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#222]'
+                  : 'bg-slate-100 dark:bg-[var(--soft-raised)] text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-[#222]'
               }`}
             >
               {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
@@ -1166,7 +1187,7 @@ function VoiceSession({
               className={`p-3 rounded-full transition-all cursor-pointer ${
                 chapter.status === 'completed'
                   ? 'bg-emerald-100 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                  : 'bg-slate-100 dark:bg-[#1a1a1a] text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:text-emerald-600'
+                  : 'bg-slate-100 dark:bg-[var(--soft-raised)] text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:text-emerald-600'
               }`}
               title={chapter.status === 'completed' ? 'Completed' : 'Mark Complete'}
             >
@@ -1228,9 +1249,9 @@ function QuizPanel({
   const allAnswered = answers.every((a) => a !== -1);
 
   return (
-    <div className="bg-white dark:bg-[#121212] rounded-2xl shadow-sm dark:shadow-black/20 overflow-hidden">
+    <div className="bg-white dark:bg-[var(--soft-surface)] rounded-2xl shadow-sm dark:shadow-black/20 overflow-hidden">
       {/* Quiz Header */}
-      <div className="px-6 py-5 border-b border-slate-100 dark:border-[#1e1e1e]">
+      <div className="px-6 py-5 border-b border-slate-100 dark:border-[var(--soft-line)]">
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
@@ -1247,7 +1268,7 @@ function QuizPanel({
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-[#1a1a1a] text-slate-400 transition-colors cursor-pointer"
+            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-[var(--soft-raised)] text-slate-400 transition-colors cursor-pointer"
           >
             <XCircle className="w-5 h-5" />
           </button>
@@ -1268,7 +1289,7 @@ function QuizPanel({
                   ? 'bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-400'
                   : answers[idx] !== -1
                   ? 'bg-violet-100 dark:bg-violet-500/15 text-violet-700 dark:text-violet-400'
-                  : 'bg-slate-100 dark:bg-[#1a1a1a] text-slate-500'
+                  : 'bg-slate-100 dark:bg-[var(--soft-raised)] text-slate-500'
               }`}
             >
               {idx + 1}
@@ -1305,7 +1326,7 @@ function QuizPanel({
                     ? 'border-red-400 bg-red-50 dark:bg-red-500/10 dark:border-red-500/40'
                     : isSelected
                     ? 'border-violet-400 bg-violet-50 dark:bg-violet-500/10 dark:border-violet-500/40'
-                    : 'border-slate-200 dark:border-[#2a2a2a] hover:border-violet-300 dark:hover:border-violet-500/30 hover:bg-violet-50/50 dark:hover:bg-violet-500/5'
+                    : 'border-slate-200 dark:border-[var(--soft-line)] hover:border-violet-300 dark:hover:border-violet-500/30 hover:bg-violet-50/50 dark:hover:bg-violet-500/5'
                 } ${submitted ? 'cursor-default' : ''}`}
               >
                 <div
@@ -1316,7 +1337,7 @@ function QuizPanel({
                       ? 'bg-red-500 text-white'
                       : isSelected
                       ? 'bg-violet-500 text-white'
-                      : 'bg-slate-100 dark:bg-[#1a1a1a] text-slate-500 dark:text-slate-400'
+                      : 'bg-slate-100 dark:bg-[var(--soft-raised)] text-slate-500 dark:text-slate-400'
                   }`}
                 >
                   {String.fromCharCode(65 + optIdx)}
@@ -1415,7 +1436,7 @@ function QuizPanel({
             <div className="flex items-center gap-3">
               <button
                 onClick={onClose}
-                className="flex-1 py-3 rounded-xl font-semibold text-sm text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-[#1a1a1a] hover:bg-slate-200 dark:hover:bg-[#222] transition-colors cursor-pointer"
+                className="flex-1 py-3 rounded-xl font-semibold text-sm text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-[var(--soft-raised)] hover:bg-slate-200 dark:hover:bg-[#222] transition-colors cursor-pointer"
               >
                 Back to Chapter
               </button>

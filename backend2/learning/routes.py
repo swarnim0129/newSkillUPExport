@@ -88,7 +88,9 @@ async def generate_learning_roadmap(
                     "resources": resources,
                     "fetched_at": datetime.utcnow().isoformat(),
                 }
-                await db.learning_resources.insert_one(node_doc)
+                # An empty result usually means a search provider failed; try again next time
+                if resources:
+                    await db.learning_resources.insert_one(node_doc)
 
                 return LearningNode(
                     topic=topic_name,
@@ -101,7 +103,8 @@ async def generate_learning_roadmap(
 
         # Cache the whole roadmap so subsequent users with the same topic
         # can reuse the same structure + resources without hitting Gemini again.
-        await db.roadmap_cache.update_one(
+        # Only cache a roadmap that actually found resources
+        if any(node.resources for node in nodes): await db.roadmap_cache.update_one(
             {"topic": topic},
             {
                 "$set": {
@@ -450,7 +453,9 @@ async def public_generate_learning_roadmap(
                     "resources": resources,
                     "fetched_at": datetime.utcnow().isoformat(),
                 }
-                await db.learning_resources.insert_one(node_doc)
+                # An empty result usually means a search provider failed; try again next time
+                if resources:
+                    await db.learning_resources.insert_one(node_doc)
                 return LearningNode(
                     topic=topic_name,
                     resources=[Resource(**res) for res in resources],
@@ -461,7 +466,8 @@ async def public_generate_learning_roadmap(
             *[fetch_topic_resources(t) for t in topics]
         )
 
-        await db.roadmap_cache.update_one(
+        # Only cache a roadmap that actually found resources
+        if any(node.resources for node in nodes): await db.roadmap_cache.update_one(
             {"topic": topic},
             {
                 "$set": {

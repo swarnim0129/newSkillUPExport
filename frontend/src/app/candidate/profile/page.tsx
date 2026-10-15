@@ -204,10 +204,10 @@ export default function ProfilePage() {
     const fullName = `${profile.firstName || ''} ${profile.lastName || ''}`.trim() || 'Candidate';
     const initials = `${(profile.firstName || 'C')[0]}${(profile.lastName || '')[0] || ''}`.toUpperCase();
 
-    const inputCls = 'w-full px-3 py-2 bg-white dark:bg-[#111] border border-slate-200 dark:border-[#2a2a2a] rounded-lg text-sm text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all';
+    const inputCls = 'w-full px-3 py-2 bg-white dark:bg-[#111] border border-slate-200 dark:border-[var(--soft-line)] rounded-lg text-sm text-slate-800 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all';
 
     return (
-        <div className="min-h-screen bg-slate-50/50 dark:bg-[#0a0a0a] p-6 lg:p-8 space-y-6 font-sans text-slate-900 dark:text-white w-full">
+        <div className="min-h-screen bg-slate-50/50 dark:bg-[var(--soft-sunken)] p-6 lg:p-8 space-y-6 font-sans text-slate-900 dark:text-white w-full">
             {/* Breadcrumb */}
             <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                 <span>HOME</span><span>/</span>
@@ -258,7 +258,7 @@ export default function ProfilePage() {
                                 </Button>
                             ) : (
                                 <div className="flex gap-2">
-                                    <Button onClick={cancelEditing} className="bg-slate-100 dark:bg-[#1a1a1a] hover:bg-slate-200 dark:hover:bg-[#222] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[#2a2a2a] h-9 px-4 gap-2 rounded-lg text-sm font-semibold">
+                                    <Button onClick={cancelEditing} className="bg-slate-100 dark:bg-[var(--soft-raised)] hover:bg-slate-200 dark:hover:bg-[#222] text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-[var(--soft-line)] h-9 px-4 gap-2 rounded-lg text-sm font-semibold">
                                         <X className="w-3.5 h-3.5" /> Cancel
                                     </Button>
                                     <Button onClick={handleSave} disabled={saving} className="bg-blue-600 hover:bg-blue-700 text-white h-9 px-4 gap-2 rounded-lg text-sm font-semibold shadow-sm">
@@ -285,7 +285,7 @@ export default function ProfilePage() {
                                 Share your link. Get <span className="font-bold text-blue-500">+10 credits</span> for every candidate who signs up.
                             </p>
                             <div className="flex items-center gap-2">
-                                <div className="flex-1 flex items-center gap-2 bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-[#2a2a2a] rounded-lg px-4 py-2.5 min-w-0">
+                                <div className="flex-1 flex items-center gap-2 bg-slate-50 dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-[var(--soft-line)] rounded-lg px-4 py-2.5 min-w-0">
                                     <LinkIcon className="w-4 h-4 text-slate-400 shrink-0" />
                                     <span className="text-sm text-slate-600 dark:text-slate-300 truncate font-mono">
                                         {referralLink || 'Loading referral link...'}
@@ -308,12 +308,12 @@ export default function ProfilePage() {
 
                         {/* Stats */}
                         <div className="flex gap-4">
-                            <div className="bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-[#2a2a2a] rounded-xl px-6 py-4 text-center min-w-[100px]">
+                            <div className="bg-slate-50 dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-[var(--soft-line)] rounded-xl px-6 py-4 text-center min-w-[100px]">
                                 <Gift className="w-5 h-5 text-blue-500 mx-auto mb-1" />
                                 <p className="text-2xl font-extrabold">{profile.credits ?? 0}</p>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Credits</p>
                             </div>
-                            <div className="bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-[#2a2a2a] rounded-xl px-6 py-4 text-center min-w-[100px]">
+                            <div className="bg-slate-50 dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-[var(--soft-line)] rounded-xl px-6 py-4 text-center min-w-[100px]">
                                 <Users className="w-5 h-5 text-blue-500 mx-auto mb-1" />
                                 <p className="text-2xl font-extrabold">{profile.referralCount ?? 0}</p>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Referrals</p>
@@ -425,7 +425,7 @@ export default function ProfilePage() {
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                     {form.skills.map((skill: string, i: number) => (
-                                        <span key={i} className="px-3 py-1.5 bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-[#2a2a2a] rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                                        <span key={i} className="px-3 py-1.5 bg-slate-50 dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-[var(--soft-line)] rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                                             {skill}
                                             <button type="button" onClick={() => removeSkill(skill)} className="text-slate-400 hover:text-red-500 transition-colors"><X className="w-3 h-3" /></button>
                                         </span>
@@ -435,7 +435,7 @@ export default function ProfilePage() {
                         ) : profile.skills?.length > 0 ? (
                             <div className="flex flex-wrap gap-2">
                                 {profile.skills.map((s: string, i: number) => (
-                                    <span key={i} className="px-3 py-1.5 bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-[#2a2a2a] rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:border-blue-400 dark:hover:border-blue-500 transition-colors">{s}</span>
+                                    <span key={i} className="px-3 py-1.5 bg-slate-50 dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-[var(--soft-line)] rounded-lg text-sm font-medium text-slate-700 dark:text-slate-300 hover:border-blue-400 dark:hover:border-blue-500 transition-colors">{s}</span>
                                 ))}
                             </div>
                         ) : (
@@ -446,7 +446,7 @@ export default function ProfilePage() {
                     {/* Referral Code */}
                     <SectionCard icon={<Gift className="w-4 h-4 text-blue-500" />} title="Your Referral Code" iconBg="bg-blue-500/10">
                         <div className="text-center space-y-3">
-                            <div className="inline-block bg-slate-50 dark:bg-[#0a0a0a] border-2 border-dashed border-blue-300 dark:border-blue-500/30 rounded-xl px-8 py-4">
+                            <div className="inline-block bg-slate-50 dark:bg-[var(--soft-sunken)] border-2 border-dashed border-blue-300 dark:border-blue-500/30 rounded-xl px-8 py-4">
                                 <p className="text-3xl font-extrabold tracking-widest text-blue-600 dark:text-blue-400 font-mono">
                                     {profile.referralCode || '—'}
                                 </p>
@@ -506,7 +506,7 @@ function SectionCard({ icon, title, iconBg, children }: { icon: React.ReactNode;
 function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string; value?: string }) {
     return (
         <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-[#0a0a0a] flex items-center justify-center text-slate-400 shrink-0 mt-0.5">{icon}</div>
+            <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-[var(--soft-sunken)] flex items-center justify-center text-slate-400 shrink-0 mt-0.5">{icon}</div>
             <div className="min-w-0">
                 <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">{label}</p>
                 <p className="text-sm font-medium text-slate-800 dark:text-slate-200 truncate">{value || '—'}</p>
@@ -529,7 +529,7 @@ function LinkRow({ icon, label, value }: { icon: React.ReactNode; label: string;
                     {icon}
                 </a>
             ) : (
-                <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-[#0a0a0a] flex items-center justify-center text-slate-400 shrink-0 cursor-not-allowed opacity-50">
+                <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-[var(--soft-sunken)] flex items-center justify-center text-slate-400 shrink-0 cursor-not-allowed opacity-50">
                     {icon}
                 </div>
             )}
@@ -554,7 +554,7 @@ function EditField({ label, name, value, onChange, cls, placeholder }: {
 
 function PrefCard({ label, value, capitalize }: { label: string; value?: string; capitalize?: boolean }) {
     return (
-        <div className="bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-[#2a2a2a] rounded-xl p-4">
+        <div className="bg-slate-50 dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-[var(--soft-line)] rounded-xl p-4">
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">{label}</p>
             <p className={cn('text-sm font-semibold text-slate-800 dark:text-slate-200', capitalize && 'capitalize')}>{value || 'Not specified'}</p>
         </div>

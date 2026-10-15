@@ -32,7 +32,7 @@
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
-  --radius: 0.625rem;
+  --radius: 0.75rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --chart-1: oklch(0.646 0.222 41.116);
@@ -86,25 +86,25 @@
 }
 
 @theme inline {
-  --color-background: hsl(var(--background));
-  --color-foreground: hsl(var(--foreground));
-  --color-card: hsl(var(--card));
-  --color-card-foreground: hsl(var(--card-foreground));
-  --color-popover: hsl(var(--popover));
-  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
   --color-primary: hsl(var(--primary));
   --color-primary-foreground: hsl(var(--primary-foreground));
-  --color-secondary: hsl(var(--secondary));
-  --color-secondary-foreground: hsl(var(--secondary-foreground));
-  --color-muted: hsl(var(--muted));
-  --color-muted-foreground: hsl(var(--muted-foreground));
-  --color-accent: hsl(var(--accent));
-  --color-accent-foreground: hsl(var(--accent-foreground));
-  --color-destructive: hsl(var(--destructive));
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
   --color-destructive-foreground: hsl(var(--destructive-foreground));
-  --color-border: hsl(var(--border));
-  --color-input: hsl(var(--input));
-  --color-ring: hsl(var(--ring));
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -338,4 +338,172 @@ body {
     body * {
         overflow: visible !important;
     }
+}
+
+/* ─── Soft UI Evolution ──────────────────────────────────────────────────────
+ * One look for every page: a lightly tinted canvas, white (or deep slate) cards
+ * that lift off it with soft two-layer shadows, softer borders, rounder corners,
+ * and a focus ring that is always visible. Contrast stays at WCAG AA or better.
+ */
+:root {
+  --soft-canvas: #e8edf5;
+  --soft-surface: #ffffff;
+  --soft-raised: #eef2f8;
+  --soft-sunken: #f1f4f9;
+  --soft-line: #dde4ef;
+  --soft-line-strong: #c9d3e3;
+  --soft-ring: #2563eb;
+  --soft-shadow-near: rgb(15 23 42 / 0.05);
+  --soft-shadow-far: rgb(37 99 235 / 0.07);
+
+  /* Soft glass: frosted panels over the clay canvas, lit from the top left */
+  --glass-bg: rgb(255 255 255 / 0.62);
+  --glass-border: rgb(255 255 255 / 0.75);
+  --glass-blur: 18px;
+  --neu-light: rgb(255 255 255 / 0.85);
+  --neu-dark: rgb(146 162 190 / 0.38);
+  --neu-raise: -6px -6px 16px var(--neu-light), 8px 10px 24px var(--neu-dark), inset 0 1px 0 rgb(255 255 255 / 0.65);
+  --neu-raise-sm: -3px -3px 8px var(--neu-light), 4px 5px 12px var(--neu-dark);
+  --neu-inset: inset 2px 2px 5px rgb(146 162 190 / 0.35), inset -2px -2px 5px rgb(255 255 255 / 0.9);
+  --canvas-glow:
+    radial-gradient(56rem 38rem at 8% -8%, rgb(37 99 235 / 0.16), transparent 62%),
+    radial-gradient(48rem 36rem at 100% 6%, rgb(139 92 246 / 0.13), transparent 60%),
+    radial-gradient(44rem 32rem at 45% 112%, rgb(13 148 136 / 0.12), transparent 60%);
+
+  /* Borders and sunken panels on older pages follow the same soft palette */
+  --color-slate-200: #dde4ef;
+  --color-neutral-200: #dde4ef;
+  --color-gray-200: #dde4ef;
+  --color-slate-50: #f1f4f9;
+  --color-neutral-50: #f1f4f9;
+  --color-gray-50: #f1f4f9;
+  /* Muted text darker, so it passes 4.5:1 on the clay canvas and on glass */
+  --color-slate-500: #4f5d73;
+  --color-neutral-500: #555f70;
+  --color-gray-500: #555f70;
+
+  --background: #ffffff;
+}
+
+.dark {
+  --soft-canvas: #0b0f17;
+  --soft-surface: #121826;
+  --soft-raised: #1a2232;
+  --soft-sunken: #0e131d;
+  --soft-line: #253048;
+  --soft-line-strong: #34405a;
+  --soft-ring: #60a5fa;
+  --soft-shadow-near: rgb(0 0 0 / 0.35);
+  --soft-shadow-far: rgb(0 0 0 / 0.30);
+
+  --glass-bg: rgb(22 29 46 / 0.6);
+  --glass-border: rgb(148 163 184 / 0.13);
+  --neu-light: rgb(255 255 255 / 0.03);
+  --neu-dark: rgb(0 0 0 / 0.55);
+  --neu-raise: -5px -5px 14px var(--neu-light), 10px 12px 28px var(--neu-dark), inset 0 1px 0 rgb(255 255 255 / 0.06);
+  --neu-raise-sm: -2px -2px 6px var(--neu-light), 4px 5px 12px var(--neu-dark);
+  --neu-inset: inset 2px 2px 6px rgb(0 0 0 / 0.5), inset -1px -1px 3px rgb(255 255 255 / 0.05);
+  --canvas-glow:
+    radial-gradient(56rem 38rem at 8% -8%, rgb(37 99 235 / 0.22), transparent 62%),
+    radial-gradient(48rem 36rem at 100% 6%, rgb(124 58 237 / 0.16), transparent 60%),
+    radial-gradient(44rem 32rem at 45% 112%, rgb(13 148 136 / 0.12), transparent 60%);
+
+  /* Pages written with plain black and neutral greys get the same deep slate tones */
+  --color-black: #0b0f17;
+  --color-neutral-950: #0e131d;
+  --color-neutral-900: #121826;
+  --color-neutral-800: #253048;
+
+  --background: #0b0f17;
+  --card: #121826;
+  --popover: #121826;
+  --border: #253048;
+  --input: #34405a;
+}
+
+/* Softer than flat, clearer than neumorphism: a tight near shadow for the edge
+   and a wide faint one for lift */
+@theme inline {
+  --shadow-2xs: var(--neu-raise-sm);
+  --shadow-xs: 0 1px 2px 0 var(--soft-shadow-near);
+  --shadow-sm: 0 1px 2px 0 var(--soft-shadow-near), 0 4px 14px -4px var(--soft-shadow-far);
+  --shadow: 0 1px 3px 0 var(--soft-shadow-near), 0 6px 18px -6px var(--soft-shadow-far);
+  --shadow-md: 0 2px 4px -1px var(--soft-shadow-near), 0 10px 24px -8px var(--soft-shadow-far);
+  --shadow-lg: 0 4px 8px -2px var(--soft-shadow-near), 0 16px 36px -10px var(--soft-shadow-far);
+  --shadow-xl: 0 8px 16px -4px var(--soft-shadow-near), 0 24px 48px -12px var(--soft-shadow-far);
+}
+
+@layer base {
+  /* Everything clickable shows a pointer */
+  :where(button:not(:disabled), [role="button"], summary, select, label[for], a[href]) {
+    cursor: pointer;
+  }
+
+  /* Keyboard focus is always visible; components with their own ring keep it */
+  :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+    outline: 2px solid var(--soft-ring);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @layer base {
+    :where(button:not(:disabled)) {
+      transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+    }
+    /* A small press, so buttons feel physical without the neumorphic emboss */
+    :where(button:not(:disabled)):active {
+      transform: translateY(1px);
+    }
+  }
+}
+
+/* ─── Soft glass (neumorphism + glassmorphism) ───────────────────────────────
+ * Unlayered on purpose: these beat Tailwind utilities, so every existing page
+ * gets the look without rewriting its markup.
+ *  - Card-like surfaces (white, rounded, with a border or shadow) turn into
+ *    frosted glass with a soft two-direction neumorphic lift.
+ *  - Text inputs sit pressed into the surface (inset shadow).
+ *  - Primary buttons glow slightly; outlined buttons are gently raised.
+ * Shadows never apply while an element has keyboard focus or a selection
+ * ring, so focus and selected rings stay visible.
+ */
+[class*="bg-[var(--soft-canvas)]"] {
+  background-image: var(--canvas-glow);
+  background-attachment: fixed;
+}
+
+:is(.bg-white, [class*="dark:bg-[var(--soft-surface)]"]):is(.rounded-xl, .rounded-2xl, .rounded-3xl):is(.border, .shadow-sm, .shadow, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl) {
+  background-color: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(160%);
+  border-color: var(--glass-border);
+}
+:is(.bg-white, [class*="dark:bg-[var(--soft-surface)]"]):is(.rounded-xl, .rounded-2xl, .rounded-3xl):is(.border, .shadow-sm, .shadow, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl):not(:focus-visible):not(.ring-2):not(.ring-1) {
+  box-shadow: var(--neu-raise);
+}
+
+:is(input:not([type="checkbox"], [type="radio"], [type="range"], [type="file"], [type="color"], [type="hidden"]), textarea, select)[class*="border"]:not(:focus-visible):not(:focus) {
+  box-shadow: var(--neu-inset);
+}
+
+:is(button, a).bg-blue-600:not(:focus-visible):not(:disabled) {
+  box-shadow: 0 8px 18px -6px rgb(37 99 235 / 0.55), inset 0 1px 0 rgb(255 255 255 / 0.22);
+}
+
+button.border:not([class*="bg-"]):not(:focus-visible):not(:disabled) {
+  box-shadow: var(--neu-raise-sm);
+}
+button.border:not([class*="bg-"]):not(:disabled):active {
+  box-shadow: var(--neu-inset);
+}
+
+/* Readers who ask for less transparency, or browsers without blur, get solid panels */
+@media (prefers-reduced-transparency: reduce) {
+  :root { --glass-bg: rgb(255 255 255 / 0.97); }
+  .dark { --glass-bg: rgb(18 24 38 / 0.98); }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root { --glass-bg: rgb(255 255 255 / 0.96); }
+  .dark { --glass-bg: rgb(18 24 38 / 0.97); }
 }

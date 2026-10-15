@@ -6,6 +6,7 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Body, Depends, status
 from typing import Optional, List, Dict, Any
 from logger import get_logger
+from url_safety import fetch_public_text
 from explainer.services import generate_explanation, generate_chat_response
 from explainer.schemas import ExplainerChatRequest, ExplainerChatResponse, SaveExplainerRequest
 from interview_agent.pdf_service import extract_text_from_pdf_bytes
@@ -58,10 +59,7 @@ async def _extract_text_from_url(url: str) -> str:
     Very simple URL content extractor using httpx.
     """
     try:
-        async with httpx.AsyncClient(timeout=20.0) as client:
-            resp = await client.get(url, follow_redirects=True)
-            resp.raise_for_status()
-            html = resp.text
+        html = await fetch_public_text(url)
     except Exception as exc:
         logger.warning("Failed to fetch URL %s: %s. Using URL-based fallback content.", url, exc)
         return (

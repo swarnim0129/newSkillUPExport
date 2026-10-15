@@ -29,7 +29,7 @@ import {
     MessageSquare,
     Briefcase,
     Activity,
-    Send,
+    Code2,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { Button } from "@/components/ui/Button";
@@ -150,7 +150,7 @@ export default function DashboardPage() {
             `  OVERVIEW METRICS`,
             `───────────────────────────────────────────────`,
             `  Resume Score:      ${ds.resumeScore || 0} / 100`,
-            `  Applications:      ${ds.applicationCount || 0} sent`,
+            `  DSA solved:        ${ds.practiceCount || 0} problems`,
             `  Interviews:        ${ds.interviewCount || 0} taken`,
             ``,
             `───────────────────────────────────────────────`,
@@ -179,9 +179,9 @@ export default function DashboardPage() {
             lines.push(`───────────────────────────────────────────────`);
             lines.push(`  CAREER GROWTH INDEX`);
             lines.push(`───────────────────────────────────────────────`);
-            lines.push(`  ${'Month'.padEnd(10)} ${'Resume'.padEnd(10)} ${'Interview'.padEnd(12)} Applications`);
+            lines.push(`  ${'Month'.padEnd(10)} ${'Resume'.padEnd(10)} ${'Interview'.padEnd(12)} Practice`);
             growthDataPoints.forEach((d: any) => {
-                lines.push(`  ${(d.month || '').padEnd(10)} ${String(d.resume || 0).padEnd(10)} ${String(d.interview || 0).padEnd(12)} ${d.applications || 0}`);
+                lines.push(`  ${(d.month || '').padEnd(10)} ${String(d.resume || 0).padEnd(10)} ${String(d.interview || 0).padEnd(12)} ${d.practice || 0}`);
             });
             lines.push(``);
         }
@@ -226,7 +226,7 @@ export default function DashboardPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50/50 dark:bg-[#0a0a0a] p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 font-sans text-slate-900 dark:text-white w-full">
+        <div className="min-h-screen bg-slate-50/50 dark:bg-[var(--soft-sunken)] p-4 sm:p-6 lg:p-8 space-y-6 sm:space-y-8 font-sans text-slate-900 dark:text-white w-full">
             {/* Header Section */}
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
@@ -240,7 +240,7 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                    <Button variant="outline" className="bg-white dark:bg-[#121212] border-slate-200 dark:border-[#2a2a2a] text-slate-700 dark:text-slate-300 shadow-sm h-10 gap-2">
+                    <Button variant="outline" className="bg-white dark:bg-[var(--soft-surface)] border-slate-200 dark:border-[var(--soft-line)] text-slate-700 dark:text-slate-300 shadow-sm h-10 gap-2">
                         <Calendar className="w-4 h-4" />
                         Last 30 Days
                     </Button>
@@ -270,13 +270,13 @@ export default function DashboardPage() {
                     ringColor="stroke-slate-600"
                 />
                 <StatCard
-                    title="APPLICATIONS"
-                    value={displayStats.applicationCount || 0}
+                    title="DSA SOLVED"
+                    value={displayStats.practiceCount || 0}
                     suffix=""
-                    max={Math.max(displayStats.applicationCount || 0, 50)}
-                    trend={displayStats.applicationCount > 0 ? `${displayStats.applicationCount} sent` : "0 sent"}
-                    trendUp={displayStats.applicationCount > 0}
-                    icon={<Send className="w-5 h-5 text-orange-500" />}
+                    max={Math.max(displayStats.practiceCount || 0, 45)}
+                    trend={displayStats.practiceCount > 0 ? `${displayStats.practiceCount} solved` : "0 solved"}
+                    trendUp={displayStats.practiceCount > 0}
+                    icon={<Code2 className="w-5 h-5 text-orange-500" />}
                     color="text-orange-500"
                     ringColor="stroke-orange-500"
                 />
@@ -294,25 +294,25 @@ export default function DashboardPage() {
             </div>
 
             {displayStats?.gamification && (
-                <Card className="border-none shadow-sm dark:shadow-black/20 bg-white dark:bg-[#121212] rounded-2xl">
+                <Card className="border-none shadow-sm dark:shadow-black/20 bg-white dark:bg-[var(--soft-surface)] rounded-2xl">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-xl font-bold text-slate-900 dark:text-white">Gamification Progress</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div className="rounded-xl border border-slate-200 dark:border-[#2a2a2a] bg-slate-50 dark:bg-[#0a0a0a] p-4">
+                            <div className="rounded-xl border border-slate-200 dark:border-[var(--soft-line)] bg-slate-50 dark:bg-[var(--soft-sunken)] p-4">
                                 <p className="text-[10px] uppercase tracking-wider text-slate-500">Level</p>
                                 <p className="text-2xl font-extrabold text-slate-900 dark:text-white">{displayStats.gamification.level || 1}</p>
                             </div>
-                            <div className="rounded-xl border border-slate-200 dark:border-[#2a2a2a] bg-slate-50 dark:bg-[#0a0a0a] p-4">
+                            <div className="rounded-xl border border-slate-200 dark:border-[var(--soft-line)] bg-slate-50 dark:bg-[var(--soft-sunken)] p-4">
                                 <p className="text-[10px] uppercase tracking-wider text-slate-500">Total XP</p>
                                 <p className="text-2xl font-extrabold text-slate-900 dark:text-white">{displayStats.gamification.xpTotal || 0}</p>
                             </div>
-                            <div className="rounded-xl border border-slate-200 dark:border-[#2a2a2a] bg-slate-50 dark:bg-[#0a0a0a] p-4">
+                            <div className="rounded-xl border border-slate-200 dark:border-[var(--soft-line)] bg-slate-50 dark:bg-[var(--soft-sunken)] p-4">
                                 <p className="text-[10px] uppercase tracking-wider text-slate-500">Weekly XP</p>
                                 <p className="text-2xl font-extrabold text-slate-900 dark:text-white">{displayStats.gamification.weeklyXp || 0}</p>
                             </div>
-                            <div className="rounded-xl border border-slate-200 dark:border-[#2a2a2a] bg-slate-50 dark:bg-[#0a0a0a] p-4">
+                            <div className="rounded-xl border border-slate-200 dark:border-[var(--soft-line)] bg-slate-50 dark:bg-[var(--soft-sunken)] p-4">
                                 <p className="text-[10px] uppercase tracking-wider text-slate-500">Streak</p>
                                 <p className="text-2xl font-extrabold text-slate-900 dark:text-white">{displayStats.gamification.currentStreak || 0}d</p>
                             </div>
@@ -335,7 +335,7 @@ export default function DashboardPage() {
             )}
 
             {/* Referral & Credits Section */}
-            <Card className="border-none shadow-sm dark:shadow-black/20 bg-white dark:bg-[#121212] rounded-2xl">
+            <Card className="border-none shadow-sm dark:shadow-black/20 bg-white dark:bg-[var(--soft-surface)] rounded-2xl">
                 <CardHeader className="pb-2">
                     <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-lg bg-slate-500/10 flex items-center justify-center">
@@ -350,7 +350,7 @@ export default function DashboardPage() {
                         <div className="md:col-span-2">
                             <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">YOUR REFERRAL LINK</p>
                             <div className="flex items-center gap-2">
-                                <div className="flex-1 flex items-center gap-2 bg-slate-50 dark:bg-[#1a1a1a] border border-slate-200 dark:border-[#2a2a2a] rounded-lg px-4 py-2.5 min-w-0">
+                                <div className="flex-1 flex items-center gap-2 bg-slate-50 dark:bg-[var(--soft-raised)] border border-slate-200 dark:border-[var(--soft-line)] rounded-lg px-4 py-2.5 min-w-0">
                                     <LinkIcon className="w-4 h-4 text-slate-400 shrink-0" />
                                     <span className="text-sm text-slate-600 dark:text-slate-300 truncate font-mono">
                                         {referralLink || "Loading referral link..."}
@@ -374,12 +374,12 @@ export default function DashboardPage() {
 
                         {/* Credits & Count */}
                         <div className="flex gap-4">
-                            <div className="flex-1 bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-[#2a2a2a] rounded-xl p-4 text-center">
+                            <div className="flex-1 bg-slate-50 dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-[var(--soft-line)] rounded-xl p-4 text-center">
                                 <Gift className="w-5 h-5 text-slate-500 mx-auto mb-1" />
                                 <p className="text-2xl font-extrabold text-slate-900 dark:text-white">{profile?.credits ?? 0}</p>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Credits</p>
                             </div>
-                            <div className="flex-1 bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-[#2a2a2a] rounded-xl p-4 text-center">
+                            <div className="flex-1 bg-slate-50 dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-[var(--soft-line)] rounded-xl p-4 text-center">
                                 <Users className="w-5 h-5 text-slate-500 mx-auto mb-1" />
                                 <p className="text-2xl font-extrabold text-slate-900 dark:text-white">{profile?.referralCount ?? 0}</p>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Referrals</p>
@@ -392,17 +392,17 @@ export default function DashboardPage() {
             {/* Main Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Career Growth Index (Area Chart) */}
-                <Card className="lg:col-span-2 border-none shadow-sm dark:shadow-black/20 bg-white dark:bg-[#121212] rounded-2xl overflow-hidden">
+                <Card className="lg:col-span-2 border-none shadow-sm dark:shadow-black/20 bg-white dark:bg-[var(--soft-surface)] rounded-2xl overflow-hidden">
                     <CardHeader className="pb-2">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                             <div>
                                 <CardTitle className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">Career Growth Index</CardTitle>
-                                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Real activity across resumes, interviews, and applications.</p>
+                                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Real activity across resumes, interviews, and practice.</p>
                             </div>
                             <div className="flex gap-3 sm:gap-4 text-[10px] sm:text-xs font-semibold uppercase tracking-wider">
                                 <div className="flex items-center gap-1.5"><span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-slate-600"></span> Resume</div>
                                 <div className="flex items-center gap-1.5"><span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-emerald-500"></span> Interview</div>
-                                <div className="flex items-center gap-1.5"><span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-orange-500"></span> Applications</div>
+                                <div className="flex items-center gap-1.5"><span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-orange-500"></span> Practice</div>
                             </div>
                         </div>
                     </CardHeader>
@@ -433,7 +433,7 @@ export default function DashboardPage() {
                                     />
                                     <Area type="monotone" dataKey="resume" stroke="#475569" strokeWidth={3} fillOpacity={1} fill="url(#colorResume)" />
                                     <Area type="monotone" dataKey="interview" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#colorInterview)" />
-                                    <Area type="monotone" dataKey="applications" stroke="#F97316" strokeWidth={3} fillOpacity={1} fill="url(#colorApplications)" />
+                                    <Area type="monotone" dataKey="practice" stroke="#F97316" strokeWidth={3} fillOpacity={1} fill="url(#colorApplications)" />
                                 </AreaChart>
                             </ResponsiveContainer>
                         </div>
@@ -441,7 +441,7 @@ export default function DashboardPage() {
                 </Card>
 
                 {/* Skill Proficiency (Radar Chart) — only shown if resume analyzed */}
-                <Card className="border-none shadow-sm dark:shadow-black/20 bg-white dark:bg-[#121212] rounded-2xl">
+                <Card className="border-none shadow-sm dark:shadow-black/20 bg-white dark:bg-[var(--soft-surface)] rounded-2xl">
                     <CardHeader>
                         <CardTitle className="text-xl font-bold text-slate-900 dark:text-white">Skill Proficiency</CardTitle>
                     </CardHeader>
@@ -488,7 +488,7 @@ export default function DashboardPage() {
             {/* Bottom Section: Activity & Milestones */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* User Activity (Heatmap Style) */}
-                <Card className="lg:col-span-2 border-none shadow-sm dark:shadow-black/20 bg-white dark:bg-[#121212] rounded-2xl">
+                <Card className="lg:col-span-2 border-none shadow-sm dark:shadow-black/20 bg-white dark:bg-[var(--soft-surface)] rounded-2xl">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <div className="flex items-center gap-2">
                             <Activity className="w-5 h-5 text-slate-500" />
@@ -497,8 +497,8 @@ export default function DashboardPage() {
                         <div className="flex gap-1 text-[10px] text-slate-400 font-medium items-center">
                             <span>LESS</span>
                             <div className="flex gap-1">
-                                <div className="w-3 h-3 bg-slate-100 dark:bg-[#1a1a1a] rounded-sm"></div>
-                                <div className="w-3 h-3 bg-slate-200 dark:bg-[#2a2a2a] rounded-sm"></div>
+                                <div className="w-3 h-3 bg-slate-100 dark:bg-[var(--soft-raised)] rounded-sm"></div>
+                                <div className="w-3 h-3 bg-slate-200 dark:bg-[var(--soft-line)] rounded-sm"></div>
                                 <div className="w-3 h-3 bg-slate-400 rounded-sm"></div>
                                 <div className="w-3 h-3 bg-slate-500 rounded-sm"></div>
                                 <div className="w-3 h-3 bg-slate-600 rounded-sm"></div>
@@ -529,7 +529,7 @@ export default function DashboardPage() {
                 </Card>
 
                 {/* Recent Milestones */}
-                <Card className="border-none shadow-sm dark:shadow-black/20 bg-white dark:bg-[#121212] rounded-2xl">
+                <Card className="border-none shadow-sm dark:shadow-black/20 bg-white dark:bg-[var(--soft-surface)] rounded-2xl">
                     <CardHeader>
                         <CardTitle className="text-xl font-bold text-slate-900 dark:text-white">Recent Milestones</CardTitle>
                     </CardHeader>
@@ -542,13 +542,13 @@ export default function DashboardPage() {
                                         <div className={cn(
                                             "rounded-full w-full h-full flex items-center justify-center text-white",
                                             ms.iconType === 'resume' ? "bg-slate-600"
-                                                : ms.iconType === 'application' ? "bg-orange-500"
+                                                : ms.iconType === 'practice' ? "bg-orange-500"
                                                     : ms.iconType === 'interview' ? "bg-emerald-500"
                                                         : "bg-slate-500"
                                         )}>
                                             {ms.iconType === 'resume' ? <FileText className="w-3 h-3" />
                                                 : ms.iconType === 'interview' ? <MessageSquare className="w-3 h-3" />
-                                                    : ms.iconType === 'application' ? <Send className="w-3 h-3" />
+                                                    : ms.iconType === 'practice' ? <Code2 className="w-3 h-3" />
                                                         : <TrendingUp className="w-3 h-3" />}
                                         </div>
                                     }
@@ -580,7 +580,7 @@ function StatCard({ title, value, max, suffix = "", trend, trendUp, icon, color,
     const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
     return (
-        <Card className="border-none shadow-sm dark:shadow-black/20 bg-white dark:bg-[#121212] rounded-2xl p-6 relative overflow-hidden group">
+        <Card className="border-none shadow-sm dark:shadow-black/20 bg-white dark:bg-[var(--soft-surface)] rounded-2xl p-6 relative overflow-hidden group">
             <div className="flex justify-between items-center relative z-10">
                 <div>
                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{title}</p>
@@ -625,7 +625,7 @@ function SkillBar({ label, value }: { label: string, value: number }) {
                 <span>{label}</span>
                 <span className="text-slate-900 dark:text-white">{value}%</span>
             </div>
-            <div className="h-1.5 bg-slate-100 dark:bg-[#2a2a2a] rounded-full overflow-hidden">
+            <div className="h-1.5 bg-slate-100 dark:bg-[var(--soft-line)] rounded-full overflow-hidden">
                 <div className="h-full bg-slate-600 rounded-full" style={{ width: `${value}%` }}></div>
             </div>
         </div>
@@ -648,11 +648,11 @@ function MilestoneItem({ icon, title, subtitle, date }: any) {
 }
 
 function getHeatmapColor(count: number, maxCount: number) {
-    if (count === 0) return "bg-slate-100 dark:bg-[#1a1a1a]";
+    if (count === 0) return "bg-slate-100 dark:bg-[var(--soft-raised)]";
     const intensity = count / maxCount;
     if (intensity > 0.8) return "bg-slate-800";
     if (intensity > 0.6) return "bg-slate-600";
     if (intensity > 0.4) return "bg-slate-500";
     if (intensity > 0.2) return "bg-slate-400";
-    return "bg-slate-200 dark:bg-[#2a2a2a]";
+    return "bg-slate-200 dark:bg-[var(--soft-line)]";
 }

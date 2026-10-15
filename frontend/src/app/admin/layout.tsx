@@ -71,7 +71,7 @@ export default function AdminLayout({
 
     if (checking) {
         return (
-            <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-black">
+            <div className="flex h-screen items-center justify-center bg-[var(--soft-canvas)]">
                 <div className="h-10 w-10 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
             </div>
         );
@@ -82,7 +82,7 @@ export default function AdminLayout({
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-black transition-colors duration-300">
+        <div className="min-h-screen bg-[var(--soft-canvas)] transition-colors duration-300">
             <LandingNavbar />
 
             {/* Mobile Sidebar Overlay */}

@@ -31,6 +31,7 @@ import {
     FileText,
 } from 'lucide-react';
 import api from '@/lib/api';
+import { scrollIntoPanel } from '@/lib/scroll';
 
 // ============ TYPES ============
 
@@ -323,14 +324,25 @@ export default function CoursePlayerPage() {
     const activeYoutubeId = activeVideo?.cloudinary_url ? extractYoutubeId(activeVideo.cloudinary_url) : null;
 
     useEffect(() => {
-        if (!activeYoutubeId) { setChapters([]); return; }
+        // Chapters belong to one video. Clear the previous video's before loading,
+        // so chat and quiz never run on the wrong video's content.
+        setChapters([]);
+        setOverallSummary('');
+        setOverallTitle('');
+        if (!activeYoutubeId) { setChaptersLoading(false); return; }
+
+        // Set when the student switches video before this request finishes
+        let cancelled = false;
+
         const fetchChapters = async () => {
             setChaptersLoading(true);
             try {
                 // Try cache first via lookup endpoint
-                const cacheRes = await fetch(`http://localhost:8000/api/yt_transcript/lookup?video_id=${activeYoutubeId}`);
+                const cacheRes = await fetch(`/api2/api/yt_transcript/lookup?video_id=${activeYoutubeId}`);
+                if (cancelled) return;
                 if (cacheRes.ok) {
                     const data = await cacheRes.json();
+                    if (cancelled) return;
                     if (data.found && data.topics && data.topics.length > 0) {
                         setChapters(data.topics);
                         setOverallSummary(data.overall_summary || '');
@@ -342,15 +354,18 @@ export default function CoursePlayerPage() {
             } catch {
                 // Cache miss, generate
             }
+            if (cancelled) return;
 
             try {
-                const genRes = await fetch('http://localhost:8000/api/yt_transcript/transcribe', {
+                const genRes = await fetch('/api2/api/yt_transcript/transcribe', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ url: `https://www.youtube.com/watch?v=${activeYoutubeId}` }),
                 });
+                if (cancelled) return;
                 if (genRes.ok) {
                     const data = await genRes.json();
+                    if (cancelled) return;
                     setChapters(data.topics || []);
                     setOverallSummary(data.overall_summary || '');
                     setOverallTitle(data.overall_title || '');
@@ -358,10 +373,11 @@ export default function CoursePlayerPage() {
             } catch (err) {
                 console.error('Transcript generation failed:', err);
             } finally {
-                setChaptersLoading(false);
+                if (!cancelled) setChaptersLoading(false);
             }
         };
         fetchChapters();
+        return () => { cancelled = true; };
     }, [activeYoutubeId]);
 
     // ============ YOUTUBE IFRAME API ============
@@ -621,7 +637,7 @@ INSTRUCTIONS:
     };
 
     useEffect(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        scrollIntoPanel(chatEndRef.current);
     }, [chatMessages]);
 
     // ============ SOCIAL INTERACTION HANDLERS ============
@@ -720,7 +736,7 @@ INSTRUCTIONS:
     if (error || !course) {
         return (
             <div className="flex flex-col items-center justify-center min-h-[60vh]">
-                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 dark:bg-[#1a1a1a] flex items-center justify-center">
+                <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 dark:bg-[var(--soft-raised)] flex items-center justify-center">
                     <BookOpen className="w-8 h-8 text-slate-400" />
                 </div>
                 <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-2">{error || 'Course not found'}</h2>
@@ -778,7 +794,7 @@ INSTRUCTIONS:
                     <div className="mt-5">
                         <div className="flex items-center gap-2 mb-2 flex-wrap">
                             <span className="px-2 py-0.5 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 rounded text-[11px] font-semibold">{course.category}</span>
-                            <span className="px-2 py-0.5 bg-slate-100 dark:bg-[#1a1a1a] text-slate-500 dark:text-slate-400 rounded text-[11px] font-semibold">{course.level}</span>
+                            <span className="px-2 py-0.5 bg-slate-100 dark:bg-[var(--soft-raised)] text-slate-500 dark:text-slate-400 rounded text-[11px] font-semibold">{course.level}</span>
                         </div>
                         <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-1">{course.title}</h1>
                         {activeVideo && (
@@ -788,21 +804,21 @@ INSTRUCTIONS:
                         )}
 
                         {/* Like + Bookmark + Comment bar */}
-                        <div className="flex items-center gap-1 py-3 border-y border-slate-100 dark:border-[#2a2a2a] my-3">
+                        <div className="flex items-center gap-1 py-3 border-y border-slate-100 dark:border-[var(--soft-line)] my-3">
                             <motion.button whileTap={{ scale: 0.9 }} onClick={handleLike} disabled={likingInProgress}
-                                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${isLiked ? 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400' : 'bg-slate-100 dark:bg-[#1a1a1a] text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-[#2a2a2a]'}`}>
+                                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${isLiked ? 'bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400' : 'bg-slate-100 dark:bg-[var(--soft-raised)] text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-[var(--soft-line)]'}`}>
                                 <Heart className={`w-4 h-4 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} />
                                 {likeCount > 0 ? likeCount : 'Like'}
                             </motion.button>
 
                             <motion.button whileTap={{ scale: 0.9 }} onClick={handleBookmark} disabled={bookmarkInProgress}
-                                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${isBookmarked ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400' : 'bg-slate-100 dark:bg-[#1a1a1a] text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-[#2a2a2a]'}`}>
+                                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${isBookmarked ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400' : 'bg-slate-100 dark:bg-[var(--soft-raised)] text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-[var(--soft-line)]'}`}>
                                 <Bookmark className={`w-4 h-4 ${isBookmarked ? 'fill-amber-500 text-amber-500' : ''}`} />
                                 {isBookmarked ? 'Saved' : 'Save'}
                             </motion.button>
 
                             <button onClick={() => setShowComments(!showComments)}
-                                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${showComments ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'bg-slate-100 dark:bg-[#1a1a1a] text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-[#2a2a2a]'}`}>
+                                className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all ${showComments ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'bg-slate-100 dark:bg-[var(--soft-raised)] text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-[var(--soft-line)]'}`}>
                                 <MessageCircle className="w-4 h-4" />
                                 {comments.length > 0 ? comments.length : 'Comments'}
                             </button>
@@ -814,7 +830,7 @@ INSTRUCTIONS:
 
                         {/* Creator + Follow */}
                         {course.creator && (
-                            <div className="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-[#2a2a2a]">
+                            <div className="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-[var(--soft-line)]">
                                 {course.creator.avatar_url ? (
                                     <img src={course.creator.avatar_url} alt={course.creator.displayName} className="w-10 h-10 rounded-full object-cover" />
                                 ) : (
@@ -831,7 +847,7 @@ INSTRUCTIONS:
                                 </div>
                                 {course.creator_clerk_id && course.creator_clerk_id !== userId && (
                                     <motion.button whileTap={{ scale: 0.95 }} onClick={handleFollow} disabled={followInProgress}
-                                        className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all flex-shrink-0 ${isFollowing ? 'bg-slate-100 dark:bg-[#2a2a2a] text-slate-600 dark:text-slate-300 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
+                                        className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold transition-all flex-shrink-0 ${isFollowing ? 'bg-slate-100 dark:bg-[var(--soft-line)] text-slate-600 dark:text-slate-300 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10 dark:hover:text-red-400' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
                                         {isFollowing ? <><UserCheck className="w-4 h-4" /> Following</> : <><UserPlus className="w-4 h-4" /> Follow</>}
                                     </motion.button>
                                 )}
@@ -851,7 +867,7 @@ INSTRUCTIONS:
                                             </div>
                                             <div className="flex-1 flex gap-2">
                                                 <input type="text" value={newComment} onChange={(e) => setNewComment(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handlePostComment()}
-                                                    placeholder="Add a comment..." className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-[#2a2a2a] bg-white dark:bg-[#121212] text-slate-900 dark:text-white placeholder:text-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40" />
+                                                    placeholder="Add a comment..." className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-[var(--soft-line)] bg-white dark:bg-[var(--soft-surface)] text-slate-900 dark:text-white placeholder:text-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40" />
                                                 <motion.button whileTap={{ scale: 0.9 }} onClick={handlePostComment} disabled={!newComment.trim() || postingComment}
                                                     className="px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold text-sm disabled:opacity-40 transition-colors hover:bg-slate-800 dark:hover:bg-slate-100">
                                                     {postingComment ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
@@ -863,7 +879,7 @@ INSTRUCTIONS:
                                     {comments.length === 0 ? (
                                         <div className="text-center py-8">
                                             <MessageCircle className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-                                            <p className="text-sm text-slate-400 dark:text-slate-500">No comments yet. Be the first!</p>
+                                            <p className="text-sm text-slate-400 dark:text-slate-400">No comments yet. Be the first!</p>
                                         </div>
                                     ) : (
                                         <div className="space-y-4">
@@ -875,7 +891,7 @@ INSTRUCTIONS:
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center gap-2">
                                                             <span className="text-sm font-semibold text-slate-800 dark:text-white">{comment.userName}</span>
-                                                            <span className="text-[11px] text-slate-400 dark:text-slate-500">{timeAgo(comment.createdAt)}</span>
+                                                            <span className="text-[11px] text-slate-400 dark:text-slate-400">{timeAgo(comment.createdAt)}</span>
                                                             {comment.clerkId === userId && (
                                                                 <button onClick={() => handleDeleteComment(comment._id)} className="opacity-0 group-hover:opacity-100 transition-opacity ml-auto p-1 rounded hover:bg-red-50 dark:hover:bg-red-500/10">
                                                                     <Trash2 className="w-3 h-3 text-red-400" />
@@ -896,9 +912,9 @@ INSTRUCTIONS:
 
                 {/* ============ RIGHT PANEL — Tabs ============ */}
                 <div className="lg:col-span-4">
-                    <div className="bg-white dark:bg-[#121212] rounded-2xl border border-slate-200 dark:border-[#2a2a2a] overflow-hidden sticky top-6">
+                    <div className="bg-white dark:bg-[var(--soft-surface)] rounded-2xl border border-slate-200 dark:border-[var(--soft-line)] overflow-hidden sticky top-6">
                         {/* Tab Header */}
-                        <div className="flex border-b border-slate-100 dark:border-[#2a2a2a]">
+                        <div className="flex border-b border-slate-100 dark:border-[var(--soft-line)]">
                             {([
                                 { key: 'playlist' as const, icon: ListVideo, label: 'Playlist' },
                                 { key: 'chapters' as const, icon: FileText, label: 'Chapters' },
@@ -915,7 +931,7 @@ INSTRUCTIONS:
                         {/* ---- TAB: Playlist ---- */}
                         {rightTab === 'playlist' && (
                             <div>
-                                <div className="p-4 border-b border-slate-100 dark:border-[#2a2a2a]">
+                                <div className="p-4 border-b border-slate-100 dark:border-[var(--soft-line)]">
                                     <h3 className="font-bold text-slate-800 dark:text-white">Course Content</h3>
                                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                         {videos.length} video{videos.length !== 1 ? 's' : ''}
@@ -931,8 +947,8 @@ INSTRUCTIONS:
                                     ) : (
                                         videos.map((video, index) => (
                                             <button key={video._id} onClick={() => handleVideoSelect(index)}
-                                                className={`w-full flex items-start gap-3 p-3 text-left transition-colors border-b border-slate-50 dark:border-[#1a1a1a] last:border-0 ${activeVideoIndex === index ? 'bg-blue-50 dark:bg-blue-500/10' : 'hover:bg-slate-50 dark:hover:bg-[#1a1a1a]'}`}>
-                                                <div className={`w-7 h-7 flex-shrink-0 rounded-lg flex items-center justify-center text-xs font-bold mt-0.5 ${activeVideoIndex === index ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-[#2a2a2a] text-slate-500 dark:text-slate-400'}`}>
+                                                className={`w-full flex items-start gap-3 p-3 text-left transition-colors border-b border-slate-50 dark:border-[var(--soft-raised)] last:border-0 ${activeVideoIndex === index ? 'bg-blue-50 dark:bg-blue-500/10' : 'hover:bg-slate-50 dark:hover:bg-[var(--soft-raised)]'}`}>
+                                                <div className={`w-7 h-7 flex-shrink-0 rounded-lg flex items-center justify-center text-xs font-bold mt-0.5 ${activeVideoIndex === index ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-[var(--soft-line)] text-slate-500 dark:text-slate-400'}`}>
                                                     {activeVideoIndex === index && isPlaying ? <Pause className="w-3 h-3" /> : index + 1}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
@@ -940,7 +956,7 @@ INSTRUCTIONS:
                                                     {video.duration_seconds > 0 && (
                                                         <div className="flex items-center gap-1 mt-0.5">
                                                             <Clock className="w-3 h-3 text-slate-400" />
-                                                            <span className="text-[11px] text-slate-400 dark:text-slate-500">{formatDuration(video.duration_seconds)}</span>
+                                                            <span className="text-[11px] text-slate-400 dark:text-slate-400">{formatDuration(video.duration_seconds)}</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -955,7 +971,7 @@ INSTRUCTIONS:
                         {/* ---- TAB: Chapters (Transcript) ---- */}
                         {rightTab === 'chapters' && (
                             <div>
-                                <div className="p-4 border-b border-slate-100 dark:border-[#2a2a2a]">
+                                <div className="p-4 border-b border-slate-100 dark:border-[var(--soft-line)]">
                                     <h3 className="font-bold text-slate-800 dark:text-white">Video Chapters</h3>
                                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                                         {chaptersLoading ? 'Generating transcript...' : chapters.length > 0 ? `${chapters.length} chapters detected` : 'Click to generate transcript'}
@@ -966,7 +982,7 @@ INSTRUCTIONS:
                                         <div className="p-8 flex flex-col items-center">
                                             <Loader2 className="w-8 h-8 animate-spin text-blue-500 mb-3" />
                                             <p className="text-sm text-slate-500 dark:text-slate-400 text-center">Transcribing & analyzing video topics…</p>
-                                            <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">This may take a minute on first load</p>
+                                            <p className="text-xs text-slate-400 dark:text-slate-400 mt-1">This may take a minute on first load</p>
                                         </div>
                                     ) : chapters.length === 0 ? (
                                         <div className="p-8 text-center">
@@ -978,23 +994,23 @@ INSTRUCTIONS:
                                     ) : (
                                         <>
                                             {overallSummary && (
-                                                <div className="p-3 border-b border-slate-100 dark:border-[#1a1a1a] bg-blue-50/50 dark:bg-blue-500/5">
+                                                <div className="p-3 border-b border-slate-100 dark:border-[var(--soft-raised)] bg-blue-50/50 dark:bg-blue-500/5">
                                                     <p className="text-xs text-slate-600 dark:text-slate-300">{overallSummary}</p>
                                                 </div>
                                             )}
                                             {chapters.map((ch, i) => (
                                                 <button key={i} onClick={() => handleChapterSeek(ch)}
-                                                    className="w-full flex items-start gap-3 p-3 text-left transition-colors border-b border-slate-50 dark:border-[#1a1a1a] last:border-0 hover:bg-slate-50 dark:hover:bg-[#1a1a1a] group">
+                                                    className="w-full flex items-start gap-3 p-3 text-left transition-colors border-b border-slate-50 dark:border-[var(--soft-raised)] last:border-0 hover:bg-slate-50 dark:hover:bg-[var(--soft-raised)] group">
                                                     <div className="w-12 flex-shrink-0 text-[10px] font-mono text-blue-600 dark:text-blue-400 pt-0.5 text-center">
                                                         {formatMs(ch.start_ms)}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <p className="text-sm font-medium text-slate-800 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{ch.title}</p>
-                                                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5 line-clamp-2">{ch.summary}</p>
+                                                        <p className="text-xs text-slate-400 dark:text-slate-400 mt-0.5 line-clamp-2">{ch.summary}</p>
                                                         {ch.keywords.length > 0 && (
                                                             <div className="flex flex-wrap gap-1 mt-1.5">
                                                                 {ch.keywords.slice(0, 3).map((kw, ki) => (
-                                                                    <span key={ki} className="px-1.5 py-0.5 bg-slate-100 dark:bg-[#2a2a2a] text-[10px] text-slate-500 dark:text-slate-400 rounded">{kw}</span>
+                                                                    <span key={ki} className="px-1.5 py-0.5 bg-slate-100 dark:bg-[var(--soft-line)] text-[10px] text-slate-500 dark:text-slate-400 rounded">{kw}</span>
                                                                 ))}
                                                             </div>
                                                         )}
@@ -1011,7 +1027,7 @@ INSTRUCTIONS:
                         {rightTab === 'ai' && (
                             <div className="flex flex-col" style={{ height: '65vh' }}>
                                 {/* Voice AI Section */}
-                                <div className="p-4 border-b border-slate-100 dark:border-[#2a2a2a]">
+                                <div className="p-4 border-b border-slate-100 dark:border-[var(--soft-line)]">
                                     <div className="flex items-center gap-2 mb-3">
                                         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                                             <Mic className="w-4 h-4 text-white" />
@@ -1062,7 +1078,7 @@ INSTRUCTIONS:
                                                         <button onClick={toggleMute}
                                                             className={`flex-1 py-2 px-3 rounded-xl font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 ${vapiMuted
                                                                 ? 'bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-500/20'
-                                                                : 'bg-slate-100 dark:bg-[#1a1a1a] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-[#2a2a2a]'}`}
+                                                                : 'bg-slate-100 dark:bg-[var(--soft-raised)] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-[var(--soft-line)]'}`}
                                                             title={vapiMuted ? 'Unmute' : 'Mute'}>
                                                             {vapiMuted ? <MicOff className="w-3 h-3" /> : <Mic className="w-3 h-3" />}
                                                             {vapiMuted ? 'Muted' : 'Mute'}
@@ -1080,7 +1096,7 @@ INSTRUCTIONS:
 
                                 {/* Text Chat Section */}
                                 <div className="flex-1 flex flex-col min-h-0">
-                                    <div className="px-4 py-2 border-b border-slate-100 dark:border-[#2a2a2a]">
+                                    <div className="px-4 py-2 border-b border-slate-100 dark:border-[var(--soft-line)]">
                                         <div className="flex items-center gap-2">
                                             <Bot className="w-4 h-4 text-blue-500" />
                                             <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Video AI Chat</span>
@@ -1091,19 +1107,19 @@ INSTRUCTIONS:
                                         {chatMessages.length === 0 && (
                                             <div className="text-center py-6">
                                                 <Bot className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
-                                                <p className="text-xs text-slate-400 dark:text-slate-500">Ask about the video content,<br />or say &quot;jump to&quot; a topic.</p>
+                                                <p className="text-xs text-slate-400 dark:text-slate-400">Ask about the video content,<br />or say &quot;jump to&quot; a topic.</p>
                                             </div>
                                         )}
                                         {chatMessages.map((msg, i) => (
                                             <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                                <div className={`max-w-[85%] px-3 py-2 rounded-xl text-xs ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-[#1a1a1a] text-slate-700 dark:text-slate-300'}`}>
+                                                <div className={`max-w-[85%] px-3 py-2 rounded-xl text-xs ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-slate-100 dark:bg-[var(--soft-raised)] text-slate-700 dark:text-slate-300'}`}>
                                                     {msg.content}
                                                 </div>
                                             </div>
                                         ))}
                                         {chatLoading && (
                                             <div className="flex justify-start">
-                                                <div className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-[#1a1a1a]">
+                                                <div className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-[var(--soft-raised)]">
                                                     <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
                                                 </div>
                                             </div>
@@ -1111,10 +1127,10 @@ INSTRUCTIONS:
                                         <div ref={chatEndRef} />
                                     </div>
 
-                                    <div className="p-3 border-t border-slate-100 dark:border-[#2a2a2a]">
+                                    <div className="p-3 border-t border-slate-100 dark:border-[var(--soft-line)]">
                                         <div className="flex gap-2">
                                             <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleChatSend()}
-                                                placeholder="Ask about the video..." className="flex-1 px-3 py-2 rounded-xl border border-slate-200 dark:border-[#2a2a2a] bg-white dark:bg-[#0a0a0a] text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/40" />
+                                                placeholder="Ask about the video..." className="flex-1 px-3 py-2 rounded-xl border border-slate-200 dark:border-[var(--soft-line)] bg-white dark:bg-[var(--soft-sunken)] text-slate-900 dark:text-white placeholder:text-slate-400 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/40" />
                                             <button onClick={handleChatSend} disabled={!chatInput.trim() || chatLoading}
                                                 className="px-3 py-2 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 disabled:opacity-40 transition-colors">
                                                 <Send className="w-3.5 h-3.5" />

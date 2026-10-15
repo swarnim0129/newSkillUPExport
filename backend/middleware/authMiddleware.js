@@ -1,9 +1,9 @@
 const jwt = require('jsonwebtoken');
-const Company = require('../models/Company');
 const Candidate = require('../models/Candidate');
-const User = require('../models/User'); 
+const User = require('../models/User');
+const Mentor = require('../models/Mentor');
 
-// Standard Clerk Protection for Users/Companies
+// Standard Clerk protection for students (candidates) and faculty mentors
 exports.protect = async (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
   
@@ -21,11 +21,13 @@ exports.protect = async (req, res, next) => {
       req.auth = verifiedToken;
       req.clerkId = clerkId;
 
-      let user = await Company.findOne({ clerkId });
+      // A faculty record wins: an account that registered as faculty is a
+      // faculty account even if it was a student account before
+      let user = await Mentor.findOne({ clerkId });
       let role = null;
 
       if (user) {
-          role = 'company';
+          role = 'mentor';
       } else {
           user = await Candidate.findOne({ clerkId });
           if (user) {
@@ -48,22 +50,13 @@ exports.protect = async (req, res, next) => {
               if (email) {
                   req.clerkEmail = email; // Store for downstream use
 
-                  // Try Company by email
-                  user = await Company.findOne({ email });
+                  // Try Candidate by email
+                  user = await Candidate.findOne({ email });
                   if (user) {
-                      role = 'company';
+                      role = 'candidate';
                       user.clerkId = clerkId;
                       await user.save();
-                      console.log(`✅ Account linked by email (Company): ${email} → new clerkId: ${clerkId}`);
-                  } else {
-                      // Try Candidate by email
-                      user = await Candidate.findOne({ email });
-                      if (user) {
-                          role = 'candidate';
-                          user.clerkId = clerkId;
-                          await user.save();
-                          console.log(`✅ Account linked by email (Candidate): ${email} → new clerkId: ${clerkId}`);
-                      }
+                      console.log(`✅ Account linked by email (Candidate): ${email} → new clerkId: ${clerkId}`);
                   }
               }
           } catch (emailLookupError) {
@@ -111,22 +104,20 @@ exports.protectAdmin = async (req, res, next) => {
                 return res.status(403).json({ message: 'Not authorized as admin' });
             }
 
-            next();
+            return next();
         } catch (error) {
             console.error(error);
-            res.status(401).json({ message: 'Not authorized' });
+            return res.status(401).json({ message: 'Not authorized' });
         }
     }
 
-    if (!token) {
-        res.status(401).json({ message: 'Not authorized, no token' });
-    }
+    return res.status(401).json({ message: 'Not authorized, no token' });
 };
 
 // Role Authorization
 exports.authorize = (...roles) => {
   return (req, res, next) => {
-    if (!req.user || (req.user.role !== 'new' && !roles.includes(req.user.role))) {
+    if (!req.user || !roles.includes(req.user.role)) {
       return res.status(403).json({ 
         message: `User role ${req.user?.role} is not authorized to access this route`
       });

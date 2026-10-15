@@ -37,9 +37,6 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use("/api/auth", require("./routes/authRoutes"));
-app.use("/api/company", require("./routes/companyRoutes"));
-app.use("/api/jobs", require("./routes/jobRoutes"));
-app.use("/api/applications", require("./routes/applicationRoutes"));
 app.use("/api/admin/auth", require("./routes/adminAuthRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/onboarding", require("./routes/onboardingRoutes"));
@@ -50,6 +47,13 @@ app.use("/api/interview", require("./routes/interviewRoutes"));
 app.use("/api/reviews", require("./routes/reviewRoutes"));
 app.use("/api/roadmap", require("./routes/roadmapRoutes"));
 app.use("/api/gamification", require("./routes/gamificationRoutes"));
+app.use("/api/journey", require("./routes/journeyRoutes"));
+app.use("/api/practice", require("./routes/practiceRoutes"));
+app.use("/api/mentor", require("./routes/mentorRoutes"));
+app.use("/api/classes", require("./routes/classRoutes"));
+app.use("/api/grow", require("./routes/growRoutes"));
+// Public, no sign-in: a student's shared skill passport
+app.get("/api/public/passport/:handle", require("./controllers/growController").publicPassport);
 app.use("/api/creator", require("./routes/creatorRoutes"));
 app.use("/api/creator-profile", require("./routes/creatorProfileRoutes"));
 app.use("/api/courses", require("./routes/courseInteractionRoutes"));
@@ -87,7 +91,7 @@ app.get("/api/courses/browse", async (req, res) => {
 
 // Health check
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", message: "Job Portal API is running" });
+  res.json({ status: "ok", message: "SkillUp API is running" });
 });
 
 // Error handler

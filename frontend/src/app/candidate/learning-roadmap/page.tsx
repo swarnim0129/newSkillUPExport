@@ -21,6 +21,7 @@ import { useAuth } from '@clerk/nextjs';
 import api from '@/lib/api';
 import axios from 'axios';
 import Vapi from '@vapi-ai/web';
+import { scrollIntoPanel } from '@/lib/scroll';
 
 /* ═══════════════════════════════════════════
    TYPES
@@ -303,7 +304,7 @@ function VideoPlayerView({ resource, topic, onBack }: { resource: Resource; topi
     const [vapiVolume, setVapiVolume] = useState(0);
     const [vapiSpeaking, setVapiSpeaking] = useState(false);
 
-    useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [chatMessages]);
+    useEffect(() => { scrollIntoPanel(chatEndRef.current); }, [chatMessages]);
 
     // Sync transcript to window for VAPI message handler access (stable useEffect can't capture transcript)
     useEffect(() => { (window as any).__murphTranscript = transcript; }, [transcript]);
@@ -315,6 +316,9 @@ function VideoPlayerView({ resource, topic, onBack }: { resource: Resource; topi
         setTranscriptError('');
 
         const vid = extractYouTubeId(resource.url);
+        // Set when another resource is opened before this request finishes
+        let cancelled = false;
+        setTranscript(null);
 
         const fetchTranscript = async () => {
             try {
@@ -323,6 +327,7 @@ function VideoPlayerView({ resource, topic, onBack }: { resource: Resource; topi
                     const lookupRes = await axios.get('/api2/api/yt_transcript/lookup', {
                         params: { video_id: vid }, timeout: 10000,
                     });
+                    if (cancelled) return;
                     if (lookupRes.data?.found) {
                         setTranscript({
                             overall_title: lookupRes.data.overall_title,
@@ -339,8 +344,9 @@ function VideoPlayerView({ resource, topic, onBack }: { resource: Resource; topi
                 const res = await axios.post<any>(
                     '/api2/api/yt_transcript/transcribe',
                     { url: resource.url },
-                    { timeout: 300000 }
+                    { timeout: 600000 }
                 );
+                if (cancelled) return;
                 setTranscript({
                     overall_title: res.data.overall_title,
                     overall_summary: res.data.overall_summary,
@@ -348,14 +354,16 @@ function VideoPlayerView({ resource, topic, onBack }: { resource: Resource; topi
                     audio_duration_seconds: res.data.audio_duration_seconds,
                 });
             } catch (err: any) {
+                if (cancelled) return;
                 const msg = err?.response?.data?.detail || err?.message || 'Failed to generate transcript';
                 setTranscriptError(typeof msg === 'string' ? msg : JSON.stringify(msg));
             } finally {
-                setTranscriptLoading(false);
+                if (!cancelled) setTranscriptLoading(false);
             }
         };
 
         fetchTranscript();
+        return () => { cancelled = true; };
     }, [resource.url]);
 
     // Seek video to a timestamp
@@ -714,7 +722,7 @@ INSTRUCTIONS:
 
                     {/* Sidebar: Chapters + Chat */}
                     <div className="lg:col-span-5">
-                        <div className="bg-white dark:bg-[#121212] border border-slate-200 dark:border-neutral-800 rounded-2xl overflow-hidden sticky top-6 flex flex-col" style={{ height: '620px' }}>
+                        <div className="bg-white dark:bg-[var(--soft-surface)] border border-slate-200 dark:border-neutral-800 rounded-2xl overflow-hidden sticky top-6 flex flex-col" style={{ height: '620px' }}>
                             {/* Sidebar Header with Tabs */}
                             <div className="border-b border-slate-200 dark:border-neutral-800">
                                 <div className="p-3 pb-0 flex items-center justify-between">
@@ -1163,7 +1171,7 @@ function ContentReaderView({ resource, topic, onBack }: { resource: Resource; to
     const chatEndRef = useRef<HTMLDivElement>(null);
     const platKey = getPlatformKey(resource.platform);
 
-    useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+    useEffect(() => { scrollIntoPanel(chatEndRef.current); }, [messages]);
 
     const sendMessage = async () => {
         const msg = input.trim();
@@ -1196,7 +1204,7 @@ function ContentReaderView({ resource, topic, onBack }: { resource: Resource; to
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 {/* Content Panel */}
                 <div className="lg:col-span-7">
-                    <div className="bg-white dark:bg-[#121212] border border-slate-200 dark:border-neutral-800 rounded-2xl overflow-hidden">
+                    <div className="bg-white dark:bg-[var(--soft-surface)] border border-slate-200 dark:border-neutral-800 rounded-2xl overflow-hidden">
                         {/* Header */}
                         <div className="p-5 border-b border-slate-200 dark:border-neutral-800">
                             <div className="flex items-center gap-2 mb-2">
@@ -1226,7 +1234,7 @@ function ContentReaderView({ resource, topic, onBack }: { resource: Resource; to
                                 onError={() => {}}
                             />
                             {/* Fallback overlay for sites that block iframes */}
-                            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white dark:from-[#121212] to-transparent">
+                            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-white dark:from-[var(--soft-surface)] to-transparent">
                                 <a
                                     href={resource.url}
                                     target="_blank"
@@ -1242,7 +1250,7 @@ function ContentReaderView({ resource, topic, onBack }: { resource: Resource; to
 
                 {/* Chat Panel */}
                 <div className="lg:col-span-5">
-                    <div className="bg-white dark:bg-[#121212] border border-slate-200 dark:border-neutral-800 rounded-2xl overflow-hidden flex flex-col sticky top-6" style={{ height: '620px' }}>
+                    <div className="bg-white dark:bg-[var(--soft-surface)] border border-slate-200 dark:border-neutral-800 rounded-2xl overflow-hidden flex flex-col sticky top-6" style={{ height: '620px' }}>
                         {/* Chat Header */}
                         <div className="p-4 border-b border-slate-200 dark:border-neutral-800 flex items-center gap-3">
                             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
@@ -1402,7 +1410,7 @@ function ResourceModal({ node, onClose, onOpenVideo, onOpenContent, nodeIndex, n
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 20 }}
                 onClick={e => e.stopPropagation()}
-                className="relative w-full max-w-2xl max-h-[80vh] bg-white dark:bg-[#0d0d0d] border border-slate-200 dark:border-neutral-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col"
+                className="relative w-full max-w-2xl max-h-[80vh] bg-white dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-neutral-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col"
             >
                 {/* Header */}
                 <div className="p-6 pb-4 border-b border-slate-200 dark:border-neutral-800">
@@ -1561,6 +1569,12 @@ export default function LearningRoadmapPage() {
     const { getToken } = useAuth();
     const [view, setView] = useState<ViewState>('landing');
     const [topic, setTopic] = useState('');
+
+    // A journey milestone can open this page with its topic already filled in
+    useEffect(() => {
+        const preset = new URLSearchParams(window.location.search).get('topic');
+        if (preset) setTopic(preset);
+    }, []);
     const [roadmap, setRoadmap] = useState<RoadmapResponse | null>(null);
     const [error, setError] = useState('');
     const [selectedNode, setSelectedNode] = useState<LearningNode | null>(null);
@@ -1745,7 +1759,7 @@ export default function LearningRoadmapPage() {
                         </div>
                     )}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-3xl mx-auto">
-                        <button onClick={() => setView('resume-upload')} className="group relative p-8 rounded-2xl bg-white dark:bg-[#0d0d0d] border border-slate-200 dark:border-neutral-800 hover:border-cyan-400 dark:hover:border-cyan-500/50 transition-all duration-300 text-left overflow-hidden shadow-sm hover:shadow-lg dark:hover:shadow-none">
+                        <button onClick={() => setView('resume-upload')} className="group relative p-8 rounded-2xl bg-white dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-neutral-800 hover:border-cyan-400 dark:hover:border-cyan-500/50 transition-all duration-300 text-left overflow-hidden shadow-sm hover:shadow-lg dark:hover:shadow-none">
                             <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                             <div className="relative z-10">
                                 <div className="w-14 h-14 rounded-2xl bg-cyan-50 dark:bg-cyan-500/10 flex items-center justify-center mb-5 group-hover:bg-cyan-100 dark:group-hover:bg-cyan-500/20 transition-colors border border-cyan-200 dark:border-cyan-500/20">
@@ -1756,7 +1770,7 @@ export default function LearningRoadmapPage() {
                                 <div className="mt-5 flex items-center gap-2 text-cyan-600 dark:text-cyan-400 text-xs font-bold uppercase tracking-wider"><ScanSearch className="w-4 h-4" /> AI Skill Gap Analysis</div>
                             </div>
                         </button>
-                        <button onClick={() => { setView('topic-input'); setTimeout(() => inputRef.current?.focus(), 100); }} className="group relative p-8 rounded-2xl bg-white dark:bg-[#0d0d0d] border border-slate-200 dark:border-neutral-800 hover:border-purple-400 dark:hover:border-purple-500/50 transition-all duration-300 text-left overflow-hidden shadow-sm hover:shadow-lg dark:hover:shadow-none">
+                        <button onClick={() => { setView('topic-input'); setTimeout(() => inputRef.current?.focus(), 100); }} className="group relative p-8 rounded-2xl bg-white dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-neutral-800 hover:border-purple-400 dark:hover:border-purple-500/50 transition-all duration-300 text-left overflow-hidden shadow-sm hover:shadow-lg dark:hover:shadow-none">
                             <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                             <div className="relative z-10">
                                 <div className="w-14 h-14 rounded-2xl bg-purple-50 dark:bg-purple-500/10 flex items-center justify-center mb-5 group-hover:bg-purple-100 dark:group-hover:bg-purple-500/20 transition-colors border border-purple-200 dark:border-purple-500/20">
@@ -1769,7 +1783,7 @@ export default function LearningRoadmapPage() {
                         </button>
                     </div>
                     <div className="flex justify-center mt-8">
-                        <button onClick={handleLoadHistory} disabled={historyLoading} className="px-6 py-3 rounded-xl bg-white dark:bg-[#0d0d0d] border border-slate-200 dark:border-neutral-800 hover:border-slate-300 dark:hover:border-neutral-700 text-slate-600 dark:text-neutral-400 text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-50">
+                        <button onClick={handleLoadHistory} disabled={historyLoading} className="px-6 py-3 rounded-xl bg-white dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-neutral-800 hover:border-slate-300 dark:hover:border-neutral-700 text-slate-600 dark:text-neutral-400 text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-50">
                             {historyLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <History className="w-4 h-4" />} View Saved Roadmaps
                         </button>
                     </div>
@@ -1780,7 +1794,7 @@ export default function LearningRoadmapPage() {
             {view === 'resume-upload' && (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-xl mx-auto space-y-6 pt-8">
                     <button onClick={() => setView('landing')} className="flex items-center gap-2 text-sm text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white transition-colors"><ArrowLeft className="w-4 h-4" /> Back</button>
-                    <div className="bg-white dark:bg-[#0d0d0d] border border-slate-200 dark:border-neutral-800 rounded-2xl p-8 shadow-sm">
+                    <div className="bg-white dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-neutral-800 rounded-2xl p-8 shadow-sm">
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Upload Your Resume</h2>
                         <p className="text-sm text-slate-500 dark:text-neutral-400 mb-6">We'll analyze it and identify areas where you can improve.</p>
                         <div {...getRootProps()} className={`border-2 border-dashed rounded-xl p-12 text-center cursor-pointer transition-all ${isDragActive ? 'border-cyan-500 bg-cyan-50 dark:bg-cyan-500/5' : 'border-slate-300 dark:border-neutral-700 hover:border-cyan-400 dark:hover:border-cyan-500/50 hover:bg-slate-50 dark:hover:bg-neutral-900/50'}`}>
@@ -1798,7 +1812,7 @@ export default function LearningRoadmapPage() {
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto space-y-6 pt-8">
                     <button onClick={resetToLanding} className="flex items-center gap-2 text-sm text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white transition-colors"><ArrowLeft className="w-4 h-4" /> Start Over</button>
                     {resumeAnalyzing ? (
-                        <div className="bg-white dark:bg-[#0d0d0d] border border-slate-200 dark:border-neutral-800 rounded-2xl p-12 shadow-sm">
+                        <div className="bg-white dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-neutral-800 rounded-2xl p-12 shadow-sm">
                             <div className="flex flex-col items-center space-y-6">
                                 <div className="relative w-20 h-20">
                                     <div className="absolute inset-0 border-4 border-slate-200 dark:border-neutral-800 rounded-full" />
@@ -1813,13 +1827,13 @@ export default function LearningRoadmapPage() {
                         </div>
                     ) : resumeAnalysis ? (
                         <div className="space-y-6">
-                            <div className="bg-white dark:bg-[#0d0d0d] border border-slate-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm">
+                            <div className="bg-white dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm">
                                 <div className="flex items-center gap-4 mb-4">
                                     <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white font-extrabold text-xl shadow-lg shadow-cyan-500/20">{resumeAnalysis.overallScore}</div>
                                     <div><h3 className="text-lg font-bold text-slate-900 dark:text-white">Resume Score</h3><p className="text-sm text-slate-500 dark:text-neutral-400">{resumeAnalysis.summary}</p></div>
                                 </div>
                             </div>
-                            <div className="bg-white dark:bg-[#0d0d0d] border border-slate-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm">
+                            <div className="bg-white dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm">
                                 <div className="flex items-center gap-3 mb-4"><Target className="w-5 h-5 text-red-500" /><h3 className="text-lg font-bold text-slate-900 dark:text-white">Skills to Improve</h3></div>
                                 <p className="text-sm text-slate-500 dark:text-neutral-400 mb-4">Click any skill below to generate a learning roadmap for it:</p>
                                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -1832,7 +1846,7 @@ export default function LearningRoadmapPage() {
                                 </div>
                             </div>
                             {resumeAnalysis.keywords.length > 0 && (
-                                <div className="bg-white dark:bg-[#0d0d0d] border border-slate-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm">
+                                <div className="bg-white dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm">
                                     <h3 className="text-sm font-bold text-slate-400 dark:text-neutral-400 uppercase tracking-widest mb-3">Your Current Skills</h3>
                                     <div className="flex flex-wrap gap-2">{resumeAnalysis.keywords.map((kw, i) => (<span key={i} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20">{kw}</span>))}</div>
                                 </div>
@@ -1846,7 +1860,7 @@ export default function LearningRoadmapPage() {
             {view === 'topic-input' && (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto space-y-6 pt-8">
                     <button onClick={() => setView('landing')} className="flex items-center gap-2 text-sm text-slate-500 dark:text-neutral-400 hover:text-slate-900 dark:hover:text-white transition-colors"><ArrowLeft className="w-4 h-4" /> Back</button>
-                    <div className="bg-white dark:bg-[#0d0d0d] border border-slate-200 dark:border-neutral-800 rounded-2xl p-6 sm:p-8 shadow-sm">
+                    <div className="bg-white dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-neutral-800 rounded-2xl p-6 sm:p-8 shadow-sm">
                         <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-1">What do you want to learn?</h2>
                         <p className="text-sm text-slate-500 dark:text-neutral-400 mb-6">Enter any topic to generate a comprehensive learning roadmap.</p>
                         {error && (<div className="flex items-center gap-3 p-3 mb-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg text-red-600 dark:text-red-400 text-sm"><AlertCircle className="w-4 h-4 shrink-0" /> {error}</div>)}
@@ -1898,7 +1912,7 @@ export default function LearningRoadmapPage() {
 
                     {/* Gamification: Progress Bar */}
                     {activeRoadmapId && Object.keys(nodeStatuses).length > 0 && (
-                        <div className="flex items-center gap-4 bg-white dark:bg-[#0d0d0d] rounded-xl p-4 border border-slate-200 dark:border-neutral-800 shadow-sm">
+                        <div className="flex items-center gap-4 bg-white dark:bg-[var(--soft-sunken)] rounded-xl p-4 border border-slate-200 dark:border-neutral-800 shadow-sm">
                             <div className="flex items-center gap-2">
                                 <Trophy className="w-5 h-5 text-amber-500" />
                                 <span className="text-sm font-bold text-slate-900 dark:text-white">Progress</span>
@@ -1917,7 +1931,7 @@ export default function LearningRoadmapPage() {
                         </div>
                     )}
 
-                    <div className="bg-white dark:bg-[#0d0d0d] border border-slate-200 dark:border-neutral-800 rounded-2xl overflow-hidden shadow-sm" style={{ height: '550px' }}>
+                    <div className="bg-white dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-neutral-800 rounded-2xl overflow-hidden shadow-sm" style={{ height: '550px' }}>
                         <ReactFlowProvider>
                             <ReactFlow nodes={rfNodes} edges={rfEdges} nodeTypes={nodeTypes} onNodeClick={onNodeClick} fitView fitViewOptions={{ padding: 0.3 }} minZoom={0.3} maxZoom={2} className="!bg-slate-50 dark:!bg-[#0d0d0d]" proOptions={{ hideAttribution: true }}>
                                 <Background color="#cbd5e1" gap={20} size={1} className="dark:!bg-[#0d0d0d] [&>pattern>circle]:dark:!fill-[#1e293b]" />
@@ -1955,7 +1969,7 @@ export default function LearningRoadmapPage() {
                 {showHistoryModal && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" onClick={() => setShowHistoryModal(false)}>
                         <div className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm" />
-                        <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} onClick={e => e.stopPropagation()} className="relative w-full max-w-md max-h-[80vh] bg-white dark:bg-[#0d0d0d] border border-slate-200 dark:border-neutral-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+                        <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} onClick={e => e.stopPropagation()} className="relative w-full max-w-md max-h-[80vh] bg-white dark:bg-[var(--soft-sunken)] border border-slate-200 dark:border-neutral-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
                             <div className="p-6 pb-4 border-b border-slate-200 dark:border-neutral-800">
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-xl font-bold text-slate-900 dark:text-white uppercase tracking-wider">Saved Roadmaps</h2>

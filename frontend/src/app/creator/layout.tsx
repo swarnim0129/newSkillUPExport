@@ -33,7 +33,7 @@ export default function CreatorLayout({
                 );
                 
                 const data = await response.json();
-                if (data.exists && (data.role === 'company' || data.role === 'candidate')) {
+                if (data.exists && (data.role === 'mentor' || data.role === 'candidate')) {
                     setIsAuthorized(true);
                 } else {
                     router.push('/onboarding');
@@ -54,7 +54,7 @@ export default function CreatorLayout({
 
     if (!isLoaded || checkingRole) {
         return (
-            <div className="flex h-screen items-center justify-center bg-white dark:bg-black">
+            <div className="flex h-screen items-center justify-center bg-[var(--soft-canvas)]">
                 <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
             </div>
         );
@@ -63,11 +63,11 @@ export default function CreatorLayout({
     if (!isAuthorized) return null;
 
     return (
-        <div className="h-screen overflow-hidden bg-white dark:bg-black text-black dark:text-white flex flex-col">
+        <div className="h-screen overflow-hidden bg-[var(--soft-canvas)] text-black dark:text-white flex flex-col">
             <LandingNavbar />
             <div className="flex flex-col md:flex-row flex-1 mt-16 h-[calc(100vh-4rem)] overflow-hidden">
                 <Sidebar open={false} setOpen={() => {}}>
-                    <SidebarBody className="justify-between gap-10 bg-white dark:bg-black border-r border-neutral-200 dark:border-neutral-800">
+                    <SidebarBody className="justify-between gap-10 bg-[var(--soft-surface)] border-r border-[var(--soft-line)] shadow-sm">
                         <div className="flex flex-col items-center border-b border-neutral-200 dark:border-neutral-800 pb-4 mb-2 mt-2 px-1">
                             <SidebarLink
                                 link={{
@@ -91,7 +91,7 @@ export default function CreatorLayout({
                         </div>
                     </SidebarBody>
                 </Sidebar>
-                <main className="flex-1 min-h-0 overflow-y-auto p-6 bg-white dark:bg-black">
+                <main className="flex-1 min-h-0 overflow-y-auto p-6 bg-[var(--soft-canvas)]">
                     <div className="max-w-7xl mx-auto h-full">{children}</div>
                 </main>
             </div>

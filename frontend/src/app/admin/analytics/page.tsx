@@ -2,15 +2,21 @@
 
 import React, { useEffect, useState } from 'react';
 import {
-    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+    XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
     BarChart, Bar, AreaChart, Area
 } from 'recharts';
 import Header from '@/components/Header';
 import Card, { CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Loader2 } from 'lucide-react';
 
+interface MonthCount { _id: string; count: number }
+interface Analytics {
+    overview: { totalStudents: number; withJourney: number; totalMentors: number; totalClasses: number };
+    graphs: { students: MonthCount[]; mentors: MonthCount[]; classes: MonthCount[] };
+}
+
 export default function AdminAnalyticsPage() {
-    const [data, setData] = useState<any>(null);
+    const [data, setData] = useState<Analytics | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -20,8 +26,7 @@ export default function AdminAnalyticsPage() {
                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5500/api'}/admin/analytics`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                const json = await res.json();
-                setData(json);
+                if (res.ok) setData(await res.json());
             } catch (error) {
                 console.error(error);
             } finally {
@@ -39,140 +44,88 @@ export default function AdminAnalyticsPage() {
         );
     }
 
-    // Transform data for charts
-    // We expect graphs: { companies: [{_id: 'YYYY-MM', count: N}], candidates: ... }
-    // We need to merge them by date for a combined chart
-
-    const mergeData = () => {
-        const map = new Map();
-
-        data?.graphs?.companies?.forEach((item: any) => {
-            const date = item._id;
-            if (!map.has(date)) map.set(date, { name: date, companies: 0, candidates: 0 });
-            map.get(date).companies = item.count;
-        });
-
-        data?.graphs?.candidates?.forEach((item: any) => {
-            const date = item._id;
-            if (!map.has(date)) map.set(date, { name: date, companies: 0, candidates: 0 });
-            map.get(date).candidates = item.count;
-        });
-
-        return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+    // Merge monthly sign-ups into one row per month
+    const map = new Map<string, { name: string; students: number; mentors: number }>();
+    const row = (month: string) => {
+        if (!map.has(month)) map.set(month, { name: month, students: 0, mentors: 0 });
+        return map.get(month)!;
     };
+    data?.graphs.students.forEach((m) => { row(m._id).students = m.count; });
+    data?.graphs.mentors.forEach((m) => { row(m._id).mentors = m.count; });
+    const growthData = Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+    const classData = data?.graphs.classes.map((m) => ({ name: m._id, classes: m.count })) || [];
 
-    const growthData = mergeData();
-    const jobData = data?.graphs?.jobs?.map((j: any) => ({ name: j._id, jobs: j.count })) || [];
+    const o = data?.overview;
+    const journeyShare = o && o.totalStudents ? Math.round((100 * o.withJourney) / o.totalStudents) : 0;
+    const tooltipStyle = { backgroundColor: '#1f2937', border: 'none', borderRadius: '8px', color: '#fff' };
 
     return (
         <div className="animate-fade-in pb-12">
             <Header title="Platform Analytics" />
 
             <div className="p-6 space-y-6">
-                {/* Growth Chart */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>User Growth Over Time</CardTitle>
+                        <CardTitle>New students and faculty per month</CardTitle>
                     </CardHeader>
                     <CardContent className="h-[400px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={growthData}>
-                                <defs>
-                                    <linearGradient id="colorCompanies" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
-                                        <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
-                                    </linearGradient>
-                                    <linearGradient id="colorCandidates" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8} />
-                                        <stop offset="95%" stopColor="#82ca9d" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
                                 <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-neutral-800" />
                                 <XAxis dataKey="name" className="text-xs" />
-                                <YAxis />
-                                <Tooltip
-                                    contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px', color: '#fff' }}
-                                />
+                                <YAxis allowDecimals={false} />
+                                <Tooltip contentStyle={tooltipStyle} />
                                 <Legend />
-                                <Area type="monotone" dataKey="companies" stroke="#8884d8" fillOpacity={1} fill="url(#colorCompanies)" name="New Companies" />
-                                <Area type="monotone" dataKey="candidates" stroke="#82ca9d" fillOpacity={1} fill="url(#colorCandidates)" name="New Candidates" />
+                                <Area type="monotone" dataKey="students" stroke="#2563eb" strokeWidth={2} fill="#2563eb" fillOpacity={0.12} name="Students" />
+                                <Area type="monotone" dataKey="mentors" stroke="#0d9488" strokeWidth={2} fill="#0d9488" fillOpacity={0.12} name="Faculty" />
                             </AreaChart>
                         </ResponsiveContainer>
                     </CardContent>
                 </Card>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Job Posts Chart */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>Job Posting Trends</CardTitle>
+                            <CardTitle>Classes created per month</CardTitle>
                         </CardHeader>
                         <CardContent className="h-[300px]">
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart data={jobData}>
+                                <BarChart data={classData}>
                                     <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200 dark:stroke-neutral-800" />
                                     <XAxis dataKey="name" className="text-xs" />
-                                    <YAxis />
-                                    <Tooltip
-                                        cursor={{ fill: 'transparent' }}
-                                        contentStyle={{ backgroundColor: '#1f2937', border: 'none', borderRadius: '8px', color: '#fff' }}
-                                    />
-                                    <Legend />
-                                    <Bar dataKey="jobs" fill="#f97316" name="New Jobs" radius={[4, 4, 0, 0]} />
+                                    <YAxis allowDecimals={false} />
+                                    <Tooltip cursor={{ fill: 'transparent' }} contentStyle={tooltipStyle} />
+                                    <Bar dataKey="classes" fill="#2563eb" name="New classes" radius={[4, 4, 0, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </CardContent>
                     </Card>
 
-                    {/* Summary Pie or text */}
                     <Card>
                         <CardHeader>
-                            <CardTitle>Distribution Summary</CardTitle>
+                            <CardTitle>Summary</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="space-y-6">
-                                <div>
-                                    <div className="flex justify-between text-sm mb-2">
-                                        <span className="text-slate-600 dark:text-slate-400">Companies vs Candidates</span>
-                                        <span className="font-semibold dark:text-white">
-                                            {((data?.overview?.totalCompanies / (data?.overview?.totalCompanies + data?.overview?.totalCandidates || 1)) * 100).toFixed(1)}% / {((data?.overview?.totalCandidates / (data?.overview?.totalCompanies + data?.overview?.totalCandidates || 1)) * 100).toFixed(1)}%
-                                        </span>
+                            <dl className="grid grid-cols-2 gap-6">
+                                {[
+                                    { label: 'Students', value: o?.totalStudents ?? 0 },
+                                    { label: 'Faculty mentors', value: o?.totalMentors ?? 0 },
+                                    { label: 'Classes', value: o?.totalClasses ?? 0 },
+                                    { label: 'Journeys set up', value: o?.withJourney ?? 0 },
+                                ].map((item) => (
+                                    <div key={item.label}>
+                                        <dt className="text-sm text-slate-500 dark:text-slate-400">{item.label}</dt>
+                                        <dd className="text-2xl font-bold text-slate-900 dark:text-white">{item.value}</dd>
                                     </div>
-                                    <div className="h-2 bg-slate-100 dark:bg-neutral-800 rounded-full overflow-hidden flex">
-                                        <div
-                                            className="h-full bg-purple-500"
-                                            style={{ width: `${(data?.overview?.totalCompanies / (data?.overview?.totalCompanies + data?.overview?.totalCandidates || 1)) * 100}%` }}
-                                        />
-                                        <div
-                                            className="h-full bg-green-500"
-                                            style={{ width: `${(data?.overview?.totalCandidates / (data?.overview?.totalCompanies + data?.overview?.totalCandidates || 1)) * 100}%` }}
-                                        />
-                                    </div>
-                                    <div className="flex justify-between text-xs mt-2 text-slate-500">
-                                        <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-purple-500"></div> Companies</span>
-                                        <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-green-500"></div> Candidates</span>
-                                    </div>
+                                ))}
+                            </dl>
+                            <div className="mt-6">
+                                <div className="flex justify-between text-sm mb-2">
+                                    <span className="text-slate-600 dark:text-slate-400">Students with a four-year plan</span>
+                                    <span className="font-semibold dark:text-white">{journeyShare}%</span>
                                 </div>
-
-                                <div>
-                                    <div className="flex justify-between text-sm mb-2">
-                                        <span className="text-slate-600 dark:text-slate-400">Company Status</span>
-                                        <span className="font-semibold dark:text-white">{data?.overview?.activeCompanies} Active</span>
-                                    </div>
-                                    <div className="h-2 bg-slate-100 dark:bg-neutral-800 rounded-full overflow-hidden flex">
-                                        <div
-                                            className="h-full bg-green-500"
-                                            style={{ width: `${(data?.overview?.activeCompanies / (data?.overview?.totalCompanies || 1)) * 100}%` }}
-                                        />
-                                        <div
-                                            className="h-full bg-yellow-500"
-                                            style={{ width: `${(data?.overview?.pendingCompanies / (data?.overview?.totalCompanies || 1)) * 100}%` }}
-                                        />
-                                    </div>
-                                    <div className="flex justify-between text-xs mt-2 text-slate-500">
-                                        <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-green-500"></div> Active ({data?.overview?.activeCompanies})</span>
-                                        <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-yellow-500"></div> Pending ({data?.overview?.pendingCompanies})</span>
-                                    </div>
+                                <div className="h-2 bg-slate-100 dark:bg-neutral-800 rounded-full overflow-hidden" role="progressbar" aria-valuenow={journeyShare} aria-valuemin={0} aria-valuemax={100} aria-label="Students with a four-year plan">
+                                    <div className="h-full bg-blue-600 rounded-full" style={{ width: `${journeyShare}%` }} />
                                 </div>
                             </div>
                         </CardContent>

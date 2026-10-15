@@ -27,6 +27,8 @@ const roadmapNodeSchema = new mongoose.Schema(
     completedAt: { type: Date, default: null },
     timeSpentMinutes: { type: Number, default: 0 },
     xpAwarded: { type: Number, default: 0 },
+    // Set on review nodes added after a failed quiz: the chapter that caused it
+    triggeredBy: { type: String, default: null },
   },
   { _id: false }
 );

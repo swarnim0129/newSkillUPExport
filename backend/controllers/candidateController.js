@@ -1,5 +1,5 @@
 const ResumeAnalysis = require('../models/ResumeAnalysis');
-const Application = require('../models/Application');
+const PracticeAttempt = require('../models/PracticeAttempt');
 const Candidate = require('../models/Candidate');
 const Interview = require('../models/Interview');
 const SavedResume = require('../models/SavedResume');
@@ -34,11 +34,11 @@ exports.getDashboardStats = async (req, res) => {
         };
 
         // Aggregate: resumes (analyses + saved)
-        const [resumeAnalysisCounts, savedResumeCounts, interviewCounts, applicationCounts] = await Promise.all([
+        const [resumeAnalysisCounts, savedResumeCounts, interviewCounts, practiceCounts] = await Promise.all([
             aggregateMonthly(ResumeAnalysis, { candidate: candidateId }),
             aggregateMonthly(SavedResume, { candidate: candidateId }),
             aggregateMonthly(Interview, { clerkId }),
-            aggregateMonthly(Application, { applicant: candidateId }),
+            aggregateMonthly(PracticeAttempt, { candidate: candidateId }),
         ]);
 
         // Build 12-month growth data
@@ -55,13 +55,13 @@ exports.getDashboardStats = async (req, res) => {
 
             const resumeCount = findCount(resumeAnalysisCounts) + findCount(savedResumeCounts);
             const interviewCount = findCount(interviewCounts);
-            const applicationCount = findCount(applicationCounts);
+            const practiceCount = findCount(practiceCounts);
 
             growthData.push({
                 month: monthNames[d.getMonth()],
                 resume: resumeCount,
                 interview: interviewCount,
-                applications: applicationCount,
+                practice: practiceCount,
             });
         }
 
@@ -113,7 +113,7 @@ exports.getDashboardStats = async (req, res) => {
             }
         };
 
-        const [heatResume, heatSaved, heatInterview, heatApp, heatActivity] = await Promise.all([
+        const [heatResume, heatSaved, heatInterview, heatPractice, heatActivity] = await Promise.all([
             ResumeAnalysis.aggregate([
                 { $match: { candidate: candidateId, createdAt: { $gte: oneYearAgo } } },
                 dateGroupStage
@@ -126,8 +126,8 @@ exports.getDashboardStats = async (req, res) => {
                 { $match: { clerkId, createdAt: { $gte: oneYearAgo } } },
                 dateGroupStage
             ]),
-            Application.aggregate([
-                { $match: { applicant: candidateId, createdAt: { $gte: oneYearAgo } } },
+            PracticeAttempt.aggregate([
+                { $match: { candidate: candidateId, createdAt: { $gte: oneYearAgo } } },
                 dateGroupStage
             ]),
             UserActivity.aggregate([
@@ -138,23 +138,23 @@ exports.getDashboardStats = async (req, res) => {
 
         // Merge all heatmap sources
         const activityHeatmap = {};
-        [heatResume, heatSaved, heatInterview, heatApp, heatActivity].forEach(source => {
+        [heatResume, heatSaved, heatInterview, heatPractice, heatActivity].forEach(source => {
             source.forEach(entry => {
                 activityHeatmap[entry._id] = (activityHeatmap[entry._id] || 0) + entry.count;
             });
         });
 
         // ──── 4. Recent Milestones (last 10 events from all sources) ────
-        const [recentAnalyses, recentResumes, recentInterviews, recentApplications] = await Promise.all([
+        const [recentAnalyses, recentResumes, recentInterviews, recentSolves] = await Promise.all([
             ResumeAnalysis.find({ candidate: candidateId })
                 .sort({ createdAt: -1 }).limit(5).lean(),
             SavedResume.find({ candidate: candidateId })
                 .sort({ createdAt: -1 }).limit(5).lean(),
             Interview.find({ clerkId, status: 'completed' })
                 .sort({ createdAt: -1 }).limit(5).lean(),
-            Application.find({ applicant: candidateId })
+            PracticeAttempt.find({ candidate: candidateId, kind: 'dsa', passed: true })
                 .sort({ createdAt: -1 }).limit(5)
-                .populate('job', 'title companyName')
+                .select('title topic createdAt')
                 .lean(),
         ]);
 
@@ -190,13 +190,13 @@ exports.getDashboardStats = async (req, res) => {
             });
         });
 
-        recentApplications.forEach(app => {
+        recentSolves.forEach(attempt => {
             milestones.push({
-                type: 'application_sent',
-                title: 'Application Sent',
-                subtitle: `Applied to ${app.job?.title || 'a role'} at ${app.job?.companyName || 'Company'}.`,
-                date: app.createdAt,
-                iconType: 'application',
+                type: 'dsa_solved',
+                title: 'Problem Solved',
+                subtitle: `Solved "${attempt.title || attempt.topic}" in Practice.`,
+                date: attempt.createdAt,
+                iconType: 'practice',
             });
         });
 
@@ -204,7 +204,7 @@ exports.getDashboardStats = async (req, res) => {
         milestones.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
         // ──── 5. Basic stats ────
-        const totalApplications = await Application.countDocuments({ applicant: candidateId });
+        const totalSolved = await PracticeAttempt.countDocuments({ candidate: candidateId, kind: 'dsa', passed: true });
         const totalInterviews = await Interview.countDocuments({ clerkId });
 
         const weeklyStart = new Date();
@@ -228,7 +228,7 @@ exports.getDashboardStats = async (req, res) => {
             success: true,
             stats: {
                 resumeScore: latestAnalysis?.analysis?.overallScore || 0,
-                applicationCount: totalApplications,
+                practiceCount: totalSolved,
                 interviewCount: totalInterviews,
                 skillProficiency,
                 growthData,

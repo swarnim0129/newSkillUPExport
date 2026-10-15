@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getGeminiClient } from "@/lib/gemini";
+import { withGeminiFallback } from "@/lib/gemini";
 import { connectDB, TutorSubject, getClerkId } from "../db";
 
 export async function POST(request: Request) {
@@ -24,8 +24,6 @@ export async function POST(request: Request) {
     const trimmedTopic = topic.trim();
 
     // Generate syllabus via Gemini
-    const genAI = getGeminiClient();
-    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
 
     const prompt = `You are a curriculum designer. Given a topic, generate a structured syllabus with exactly 8 to 10 chapters, ordered from beginner to advanced concepts.
 
@@ -51,8 +49,7 @@ Return ONLY valid JSON in this exact format, no markdown code fences:
 
 Topic: ${trimmedTopic}`;
 
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
+    const responseText = await withGeminiFallback((model) => model.generateContent(prompt).then((r) => r.response.text()));
 
     // Parse JSON from response (strip markdown fences if present)
     let parsed;

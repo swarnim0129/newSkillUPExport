@@ -20,3 +20,8 @@ python-dateutil
 openai
 PyMuPDF
 aiohttp
+groq
+requests
+certifi
+youtube-transcript-api
+beautifulsoup4

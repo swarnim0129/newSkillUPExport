@@ -14,7 +14,7 @@ const savedResumeSchema = new mongoose.Schema({
     },
     template: {
         type: String,
-        enum: ['classic', 'modern', 'executive'],
+        enum: ['classic', 'modern', 'executive', 'latex'],
         default: 'modern'
     },
     dataUrl: {

@@ -10,6 +10,7 @@ interface VideoData {
     title: string;
     duration_seconds: number;
     thumbnail_url?: string;
+    cloudinary_url?: string;
     order_index: number;
 }
 
@@ -127,7 +128,7 @@ export default function VideoTutorPage() {
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search courses..."
-                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-[#2a2a2a] bg-white dark:bg-[#121212] text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 text-sm"
+                            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-[var(--soft-line)] bg-white dark:bg-[var(--soft-surface)] text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 text-sm"
                         />
                     </div>
                     <button
@@ -146,7 +147,7 @@ export default function VideoTutorPage() {
                             className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
                                 selectedCategory === cat
                                     ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900'
-                                    : 'bg-slate-100 dark:bg-[#1a1a1a] text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-[#2a2a2a]'
+                                    : 'bg-slate-100 dark:bg-[var(--soft-raised)] text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-[var(--soft-line)]'
                             }`}
                         >
                             {cat}
@@ -196,9 +197,9 @@ export default function VideoTutorPage() {
                                     href={`/candidate/videoTutor/${course._id}`}
                                     className="block group"
                                 >
-                                    <div className="bg-white dark:bg-[#121212] rounded-2xl border border-slate-200 dark:border-[#2a2a2a] overflow-hidden transition-all duration-300 hover:border-blue-300 dark:hover:border-blue-500/40 hover:shadow-lg">
+                                    <div className="bg-white dark:bg-[var(--soft-surface)] rounded-2xl border border-slate-200 dark:border-[var(--soft-line)] overflow-hidden transition-all duration-300 hover:border-blue-300 dark:hover:border-blue-500/40 hover:shadow-lg">
                                         {/* Thumbnail */}
-                                        <div className="relative aspect-video bg-slate-100 dark:bg-[#1a1a1a]">
+                                        <div className="relative aspect-video bg-slate-100 dark:bg-[var(--soft-raised)]">
                                             {getCourseThumbnail(course) ? (
                                                 <img
                                                     src={getCourseThumbnail(course)!}
@@ -213,7 +214,7 @@ export default function VideoTutorPage() {
                                                 </div>
                                             )}
                                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
-                                                <div className="w-14 h-14 rounded-full bg-white/90 dark:bg-[#2a2a2a]/90 flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 scale-90 group-hover:scale-100">
+                                                <div className="w-14 h-14 rounded-full bg-white/90 dark:bg-[var(--soft-line)]/90 flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 scale-90 group-hover:scale-100">
                                                     <Play className="w-6 h-6 text-slate-800 dark:text-white ml-1" />
                                                 </div>
                                             </div>
@@ -240,11 +241,11 @@ export default function VideoTutorPage() {
                                                 <span className="px-2 py-0.5 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-300 rounded text-[11px] font-semibold">
                                                     {course.category}
                                                 </span>
-                                                <span className="px-2 py-0.5 bg-slate-100 dark:bg-[#1a1a1a] text-slate-500 dark:text-slate-400 rounded text-[11px] font-semibold">
+                                                <span className="px-2 py-0.5 bg-slate-100 dark:bg-[var(--soft-raised)] text-slate-500 dark:text-slate-400 rounded text-[11px] font-semibold">
                                                     {course.level}
                                                 </span>
                                                 {course.total_videos > 0 && (
-                                                    <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                                                    <span className="text-[11px] text-slate-400 dark:text-slate-400">
                                                         {course.total_videos} video{course.total_videos !== 1 ? 's' : ''}
                                                     </span>
                                                 )}
@@ -258,7 +259,7 @@ export default function VideoTutorPage() {
 
                                             {/* Creator info */}
                                             {course.creator && (
-                                                <div className="flex items-center gap-2 pt-3 border-t border-slate-100 dark:border-[#2a2a2a]">
+                                                <div className="flex items-center gap-2 pt-3 border-t border-slate-100 dark:border-[var(--soft-line)]">
                                                     {course.creator.avatar_url ? (
                                                         <img
                                                             src={course.creator.avatar_url}
@@ -293,7 +294,7 @@ export default function VideoTutorPage() {
                     {/* Empty State */}
                     {courses.length === 0 && (
                         <div className="text-center py-16">
-                            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 dark:bg-[#1a1a1a] flex items-center justify-center">
+                            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 dark:bg-[var(--soft-raised)] flex items-center justify-center">
                                 <BookOpen className="w-8 h-8 text-slate-400" />
                             </div>
                             <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">

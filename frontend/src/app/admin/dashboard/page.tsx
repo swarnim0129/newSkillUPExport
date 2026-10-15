@@ -1,14 +1,15 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Users, Building2, Briefcase, FileText, TrendingUp, Clock, BarChart3 } from 'lucide-react';
+import { Users, Presentation, School, ClipboardList, Route, BarChart3 } from 'lucide-react';
 import api from '@/lib/api';
+import Link from 'next/link';
 
 interface AdminStats {
-    users: { total: number };
-    companies: { total: number; active: number; pending: number };
-    jobs: { total: number; active: number; flagged: number };
-    applications: { total: number };
+    students: { total: number; withJourney: number };
+    mentors: { total: number };
+    classes: { total: number; active: number; memberships: number };
+    classwork: { total: number };
 }
 
 export default function AdminDashboard() {
@@ -53,10 +54,10 @@ export default function AdminDashboard() {
             {/* Main Stats Grid - Professional & Minimal */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                    { label: 'Total Users', value: stats?.users.total || 0, icon: Users },
-                    { label: 'Active Companies', value: stats?.companies.active || 0, icon: Building2 },
-                    { label: 'Total Jobs', value: stats?.jobs.total || 0, icon: Briefcase },
-                    { label: 'Applications', value: stats?.applications.total || 0, icon: FileText }
+                    { label: 'Students', value: stats?.students.total || 0, icon: Users },
+                    { label: 'Faculty mentors', value: stats?.mentors.total || 0, icon: Presentation },
+                    { label: 'Active classes', value: stats?.classes.active || 0, icon: School },
+                    { label: 'Classwork set', value: stats?.classwork.total || 0, icon: ClipboardList }
                 ].map((stat, i) => (
                     <div key={i} className="group relative p-6 bg-white dark:bg-black rounded-xl border border-slate-200 dark:border-slate-800 hover:border-[#4a6cf7]/30 transition-all duration-300 shadow-sm hover:shadow-md">
                         <div className="flex items-start justify-between mb-4">
@@ -84,37 +85,25 @@ export default function AdminDashboard() {
                 {/* Pending Actions Column */}
                 <div className="lg:col-span-2 grid grid-cols-1 gap-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Pending Approvals Widget */}
                         <div className="bg-white dark:bg-black p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
                             <div className="flex items-center gap-3 mb-6">
-                                <Clock size={20} className="text-[#4a6cf7]" />
-                                <h3 className="font-semibold text-slate-900 dark:text-white">Pending Approvals</h3>
+                                <Route size={20} className="text-[#4a6cf7]" aria-hidden="true" />
+                                <h3 className="font-semibold text-slate-900 dark:text-white">Journeys set up</h3>
                             </div>
-                            <div className="flex items-end justify-between">
-                                <div>
-                                    <span className="text-4xl font-bold text-slate-900 dark:text-white block mb-1">{stats?.companies.pending || 0}</span>
-                                    <span className="text-sm text-slate-500 dark:text-slate-400">Companies awaiting review</span>
-                                </div>
-                                <a href="/admin/companies" className="text-sm font-medium text-[#4a6cf7] hover:bg-[#4a6cf7]/5 px-3 py-1.5 rounded-md transition-colors">
-                                    Review &rarr;
-                                </a>
+                            <div>
+                                <span className="text-4xl font-bold text-slate-900 dark:text-white block mb-1">{stats?.students.withJourney || 0}</span>
+                                <span className="text-sm text-slate-500 dark:text-slate-400">of {stats?.students.total || 0} students have a four-year plan</span>
                             </div>
                         </div>
 
-                        {/* Flagged Jobs Widget */}
                         <div className="bg-white dark:bg-black p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col justify-between">
                             <div className="flex items-center gap-3 mb-6">
-                                <TrendingUp size={20} className="text-red-500" /> {/* Keeping red for critical alerts */}
-                                <h3 className="font-semibold text-slate-900 dark:text-white">Flagged Jobs</h3>
+                                <School size={20} className="text-[#4a6cf7]" aria-hidden="true" />
+                                <h3 className="font-semibold text-slate-900 dark:text-white">Class enrolments</h3>
                             </div>
-                            <div className="flex items-end justify-between">
-                                <div>
-                                    <span className="text-4xl font-bold text-slate-900 dark:text-white block mb-1">{stats?.jobs.flagged || 0}</span>
-                                    <span className="text-sm text-slate-500 dark:text-slate-400">Listings flagged for review</span>
-                                </div>
-                                <a href="/admin/jobs" className="text-sm font-medium text-red-500 hover:bg-red-500/5 px-3 py-1.5 rounded-md transition-colors">
-                                    Moderate &rarr;
-                                </a>
+                            <div>
+                                <span className="text-4xl font-bold text-slate-900 dark:text-white block mb-1">{stats?.classes.memberships || 0}</span>
+                                <span className="text-sm text-slate-500 dark:text-slate-400">student places across {stats?.classes.total || 0} classes</span>
                             </div>
                         </div>
                     </div>
@@ -122,20 +111,20 @@ export default function AdminDashboard() {
                     {/* Quick Access Menu */}
                     <div className="w-full bg-[#4a6cf7] p-6 rounded-xl text-white shadow-lg relative overflow-hidden">
                         <div className="absolute top-0 right-0 p-8 opacity-10">
-                            <Briefcase size={120} />
+                            <School size={120} />
                         </div>
                         <div className="relative z-10">
                             <h3 className="text-xl font-bold mb-4">Quick Management</h3>
                             <div className="flex gap-3 flex-wrap">
-                                <a href="/admin/users" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-white/10">
-                                    Manage Users
-                                </a>
-                                <a href="/admin/companies" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-white/10">
-                                    Verify Companies
-                                </a>
-                                <a href="/admin/jobs" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-white/10">
-                                    Job Listings
-                                </a>
+                                <Link href="/admin/users" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-white/10">
+                                    Manage Students
+                                </Link>
+                                <Link href="/admin/analytics" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-white/10">
+                                    Analytics
+                                </Link>
+                                <Link href="/admin/reviews" className="bg-white/10 hover:bg-white/20 backdrop-blur-sm px-4 py-2 rounded-lg text-sm font-medium transition-colors border border-white/10">
+                                    Reviews
+                                </Link>
                             </div>
                         </div>
                     </div>
@@ -150,10 +139,9 @@ export default function AdminDashboard() {
 
                     <div className="space-y-6">
                         {[
-                            { label: 'Total Companies Signed Up', value: stats?.companies.total || 0, total: 100 }, // Mock progress for visual
-                            { label: 'Verified Companies', value: stats?.companies.active || 0, total: stats?.companies.total || 1 },
-                            { label: 'Active Job Listings', value: stats?.jobs.active || 0, total: stats?.jobs.total || 1 },
-                            { label: 'Total Applications', value: stats?.applications.total || 0, total: 100 }
+                            { label: 'Students with a journey', value: stats?.students.withJourney || 0, total: stats?.students.total || 1 },
+                            { label: 'Active classes', value: stats?.classes.active || 0, total: stats?.classes.total || 1 },
+                            { label: 'Students in a class', value: stats?.classes.memberships || 0, total: Math.max(stats?.students.total || 1, stats?.classes.memberships || 1) }
                         ].map((s, i) => (
                             <div key={i}>
                                 <div className="flex justify-between text-sm mb-2">

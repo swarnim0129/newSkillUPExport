@@ -22,9 +22,9 @@ api.interceptors.request.use(
                     config.headers.Authorization = `Bearer ${adminToken}`;
                 }
             } else {
-                // Default user token
+                // Legacy token, used only when the caller did not pass a Clerk token itself
                 const token = localStorage.getItem('token');
-                if (token) {
+                if (token && !config.headers.Authorization) {
                     config.headers.Authorization = `Bearer ${token}`;
                 }
             }
@@ -47,7 +47,8 @@ api.interceptors.response.use(
                     localStorage.removeItem('adminToken');
                     localStorage.removeItem('adminUser');
                     window.location.href = '/admin/login';
-                } else {
+                } else if (localStorage.getItem('token')) {
+                    // Only a stale legacy session is cleared; Clerk sessions refresh on their own
                     localStorage.removeItem('token');
                     localStorage.removeItem('user');
                     window.location.href = '/';

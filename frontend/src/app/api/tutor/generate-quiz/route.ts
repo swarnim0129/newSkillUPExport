@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getClerkId } from "../db";
-import { getGeminiClient } from "@/lib/gemini";
+import { withGeminiFallback } from "@/lib/gemini";
 
 // ─── POST /api/tutor/generate-quiz ────────────────────────────────────────────
 // Generates 2-3 MCQ questions based on a chapter's title and description.
@@ -29,8 +29,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const genAI = getGeminiClient();
-    const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
 
     const prompt = `You are an expert educator creating a quick assessment quiz for a student who just completed a lesson.
 
@@ -67,8 +65,7 @@ Respond ONLY with a JSON array in this exact format (no markdown, no backticks):
   }
 ]`;
 
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text().trim();
+    const responseText = (await withGeminiFallback((model) => model.generateContent(prompt).then((r) => r.response.text()))).trim();
 
     // Parse the JSON response — handle potential markdown wrapping
     let cleaned = responseText;

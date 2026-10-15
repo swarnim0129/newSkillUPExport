@@ -15,21 +15,22 @@ import { TextReveal } from '@/components/magicui/text-reveal';
 import {
   ArrowRight, Route, Mic, Brain, FileText, ScanSearch, Briefcase,
   CheckCircle2, Sparkles, Zap, GraduationCap, TrendingUp,
-  Target, ChevronRight, Star, Play
+  Target, ChevronRight, Star, Play,
+  Hourglass, Telescope, BadgeCheck, Camera, Siren, Radio
 } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5500/api';
-type UserRole = 'candidate' | 'company' | null;
+type UserRole = 'candidate' | 'mentor' | 'admin' | null;
 
 const features = [
-  { icon: Route, title: 'AI Learning Roadmap', desc: 'AI generates custom learning paths with curated videos, articles, and courses based on your resume or goals.', href: '/candidate/learning-roadmap' },
-  { icon: Mic, title: 'MURPH Voice Tutor', desc: 'Voice AI that answers your questions while watching videos. Pause, explain, jump to topics — hands-free.', href: '/candidate/learning-roadmap' },
-  { icon: Brain, title: 'AI Mock Interviews', desc: 'Practice with a voice-powered AI interviewer. Real-time feedback on answers, delivery, and confidence.', href: '/candidate/ai-interview' },
-  { icon: FileText, title: 'AI Resume Builder', desc: 'Build ATS-optimized resumes with AI scoring, keyword suggestions, and professional templates.', href: '/candidate/resume-builder' },
-  { icon: ScanSearch, title: 'Resume Analyzer', desc: 'Upload your resume for AI-powered analysis with actionable improvements and ATS compatibility scoring.', href: '/candidate/resume-analyzer' },
-  { icon: Briefcase, title: 'Smart Job Matching', desc: 'AI matches your skills and preferences to ideal opportunities. One-click apply and application tracking.', href: '/candidate/dashboard' },
+  { icon: Hourglass, title: 'Talk to Your Future Self', desc: 'A voice call with you in final year, speaking from your real projection: what happened if you kept today\u2019s habits, and if you changed them.', href: '/candidate/companion' },
+  { icon: Telescope, title: 'What-If Time Machine', desc: 'Move a slider for hours, goal or DSA pace and watch your readiness curve redraw against the ready line, with every assumption shown.', href: '/candidate/insights' },
+  { icon: BadgeCheck, title: 'Verified Skill Passport', desc: 'A public page and QR code where every skill links to real results: tested solutions, scored sets, AI interviews and class grades.', href: '/candidate/passport' },
+  { icon: Camera, title: 'Snap & Study', desc: 'Photograph the whiteboard or your notes. Get a summary, a 5-question quiz and flashcards in seconds, plus a revision slot in your plan.', href: '/candidate/practice?tab=snap' },
+  { icon: Siren, title: 'Panic Mode', desc: 'Exam in 72 hours? An hour-by-hour sprint with shaky topics first, quiz bursts, breaks and sleep, counting down to the exam.', href: '/candidate/practice?tab=panic' },
+  { icon: Radio, title: 'Live Class Battles', desc: 'Faculty run a Kahoot-style timed quiz on the projector; the class answers from phones with a live leaderboard.', href: '/candidate/classes' },
 ];
 
 const showcaseItems = [
@@ -156,11 +157,11 @@ export default function SkillUpLanding() {
     checkRole();
   }, [isLoaded, isSignedIn, user, getToken]);
 
-  const dashLink = userRole === 'candidate' ? '/candidate/dashboard' : userRole === 'company' ? '/company/dashboard' : '/onboarding';
+  const dashLink = userRole === 'candidate' ? '/candidate/journey' : userRole === 'mentor' ? '/mentor' : userRole === 'admin' ? '/admin/dashboard' : '/onboarding';
   const fHref = (c: string) => !isSignedIn ? '/signup' : userRole === 'candidate' ? c : '/onboarding';
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#0c0c0c] text-gray-900 dark:text-gray-100 transition-colors overflow-hidden">
+    <div className="min-h-screen bg-white dark:bg-[var(--soft-sunken)] text-gray-900 dark:text-gray-100 transition-colors overflow-hidden">
       {/* Dot grid background */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="w-full h-full opacity-[0.3] dark:opacity-[0.06]" style={{ backgroundImage: 'radial-gradient(circle, #d1d5db 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
@@ -168,7 +169,7 @@ export default function SkillUpLanding() {
 
       {/* ═══════════ NAVBAR ═══════════ */}
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        isScrolled ? 'bg-white/80 dark:bg-[#0c0c0c]/80 backdrop-blur-xl shadow-[0_1px_0_0_rgba(0,0,0,0.06)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.04)]' : ''
+        isScrolled ? 'bg-white/80 dark:bg-[var(--soft-sunken)]/80 backdrop-blur-xl shadow-[0_1px_0_0_rgba(0,0,0,0.06)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.04)]' : ''
       }`}>
         <nav className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
@@ -185,6 +186,9 @@ export default function SkillUpLanding() {
           <div className="flex items-center gap-2">
             <AnimatedThemeToggler className="p-2 rounded-lg text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors" />
             <SignedOut>
+              <Link href="/signup?role=mentor" className="hidden sm:inline-flex px-4 py-2 rounded-full text-sm font-semibold text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
+                For faculty
+              </Link>
               <Link href="/signup" className="px-4 py-2 rounded-full text-sm font-semibold bg-[#c8ff00] text-black hover:bg-[#b8ef00] transition-colors shadow-sm">
                 Get Started
               </Link>
@@ -279,7 +283,7 @@ export default function SkillUpLanding() {
         <div className="relative z-10 max-w-5xl mx-auto px-6 mt-16">
           <div className="flex flex-col md:flex-row items-center justify-center gap-5">
             <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-              className="bg-white dark:bg-[#161618] rounded-2xl p-5 shadow-xl shadow-gray-200/40 dark:shadow-black/40 border border-gray-100 dark:border-gray-800/60 w-56"
+              className="bg-white dark:bg-[var(--soft-surface)] rounded-2xl p-5 shadow-xl shadow-gray-200/40 dark:shadow-black/40 border border-gray-100 dark:border-gray-800/60 w-56"
             >
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-8 h-8 rounded-lg bg-[#c8ff00]/20 flex items-center justify-center"><TrendingUp className="w-4 h-4 text-[#7a9900] dark:text-[#c8ff00]" /></div>
@@ -291,7 +295,7 @@ export default function SkillUpLanding() {
             </motion.div>
 
             <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-              className="bg-gray-900 dark:bg-[#161618] rounded-3xl p-4 shadow-2xl shadow-gray-300/40 dark:shadow-black/60 border border-gray-800 dark:border-gray-700/40 w-72"
+              className="bg-gray-900 dark:bg-[var(--soft-surface)] rounded-3xl p-4 shadow-2xl shadow-gray-300/40 dark:shadow-black/60 border border-gray-800 dark:border-gray-700/40 w-72"
             >
               <div className="flex items-center justify-between mb-3">
                 <span className="text-[10px] font-bold text-gray-400">9:41</span>
@@ -315,7 +319,7 @@ export default function SkillUpLanding() {
             </motion.div>
 
             <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-              className="bg-white dark:bg-[#161618] rounded-2xl p-5 shadow-xl shadow-gray-200/40 dark:shadow-black/40 border border-gray-100 dark:border-gray-800/60 w-56"
+              className="bg-white dark:bg-[var(--soft-surface)] rounded-2xl p-5 shadow-xl shadow-gray-200/40 dark:shadow-black/40 border border-gray-100 dark:border-gray-800/60 w-56"
             >
               <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Career Readiness</div>
               <div className="text-2xl font-black mt-0.5">92<span className="text-lg">%</span></div>
@@ -352,7 +356,7 @@ export default function SkillUpLanding() {
       <section className="py-20 px-6">
         <div className="max-w-4xl mx-auto">
           <TextReveal
-            text="SkillUp combines AI-powered learning roadmaps, voice tutoring with MURPH, mock interviews, resume building, and smart job matching into one seamless platform that takes you from beginner to hired."
+            text="SkillUp combines AI-powered learning roadmaps, voice tutoring with MURPH, mock interviews, resume building and DSA practice into one four-year journey, with a companion that takes you from first semester to placements."
             className="text-gray-900 dark:text-white"
           />
         </div>
@@ -414,7 +418,7 @@ export default function SkillUpLanding() {
             {[
               { num: '01', icon: Route, title: 'Upload & Set Goals', desc: 'Upload your resume or pick a target role. AI analyzes your skills and builds a personalized roadmap.' },
               { num: '02', icon: Mic, title: 'Learn with MURPH', desc: 'Watch curated lessons with MURPH answering your questions, explaining concepts, and controlling video.' },
-              { num: '03', icon: Briefcase, title: 'Get Hired', desc: 'Practice AI interviews, build ATS resumes, and get matched with jobs that fit your new skills.' },
+              { num: '03', icon: Briefcase, title: 'Get Placed', desc: 'Practise DSA and AI mock interviews, build an ATS resume, and track your readiness forecast until placements.' },
             ].map((s, i) => (
               <div key={i} data-step-card>
                 <MagicCard className="relative p-7 bg-white dark:bg-white/[0.03] border border-gray-100 dark:border-gray-800/40 hover:shadow-md transition-shadow">
@@ -465,6 +469,42 @@ export default function SkillUpLanding() {
         </div>
       </section>
 
+      {/* ═══════════ FOR FACULTY ═══════════ */}
+      <section id="for-faculty" className="py-24 px-6 bg-gray-50/80 dark:bg-white/[0.02] border-y border-gray-100 dark:border-gray-800/30">
+        <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-10 items-center">
+          <div>
+            <p className="text-sm font-bold uppercase tracking-wider text-[#7a9900] dark:text-[#c8ff00] mb-3">For faculty</p>
+            <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight mb-4">Run your class on SkillUp</h2>
+            <p className="text-gray-500 dark:text-gray-400 mb-6 leading-relaxed">
+              Create a class, share its join code, and set work that is checked from what students actually do: DSA problems, Practice Lab scores, mock interviews and resume scores. You see who is stuck before results day.
+            </p>
+            <SignedOut>
+              <Link href="/signup?role=mentor" className="inline-flex items-center gap-2 min-h-11 px-6 rounded-full font-semibold bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors">
+                Register as faculty <ArrowRight className="w-4 h-4" aria-hidden="true" />
+              </Link>
+            </SignedOut>
+            <SignedIn>
+              <Link href={userRole === 'mentor' ? '/mentor' : '/onboarding?role=mentor'} className="inline-flex items-center gap-2 min-h-11 px-6 rounded-full font-semibold bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors">
+                {userRole === 'mentor' ? 'Open my classes' : 'Register as faculty'} <ArrowRight className="w-4 h-4" aria-hidden="true" />
+              </Link>
+            </SignedIn>
+          </div>
+          <ul className="space-y-3">
+            {[
+              'Classes with a join code, like Google Classroom',
+              'Classwork that marks itself done from student practice',
+              'Quizzes you write or draft with AI, auto-graded',
+              'Class insights: weakest topics, common mistakes, students at risk',
+              'One-click suggestions for what to set next',
+            ].map((point) => (
+              <li key={point} className="flex items-start gap-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                <CheckCircle2 className="w-4 h-4 mt-0.5 text-[#7a9900] dark:text-[#c8ff00] shrink-0" aria-hidden="true" />{point}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
       {/* ═══════════ CTA ═══════════ */}
       <section className="py-24 px-6">
         <div className="max-w-4xl mx-auto">
@@ -473,7 +513,7 @@ export default function SkillUpLanding() {
             <div className="relative z-10">
               <GraduationCap className="w-10 h-10 mx-auto mb-5 text-[#c8ff00]/40" />
               <h2 className="text-3xl md:text-5xl font-extrabold mb-4 tracking-tight">Ready to level up?</h2>
-              <p className="text-gray-400 mb-8 max-w-md mx-auto">Join learners who use SkillUp to master skills and land dream jobs — for free.</p>
+              <p className="text-gray-400 mb-8 max-w-md mx-auto">Join students who use SkillUp to plan every year from first semester to placements, for free.</p>
               <SignedOut>
                 <Link href="/signup">
                   <ShinyButton className="h-13 px-8 bg-[#c8ff00] text-black font-bold text-base shadow-lg shadow-[#c8ff00]/15">

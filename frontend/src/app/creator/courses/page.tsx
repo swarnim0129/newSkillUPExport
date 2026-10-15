@@ -243,7 +243,7 @@ export default function CreatorCoursesPage() {
                         <motion.div
                             initial={{ scale: 0.95 }}
                             animate={{ scale: 1 }}
-                            className="bg-white dark:bg-[#121212] rounded-2xl border border-slate-200 dark:border-[#2a2a2a] p-6 w-full max-w-md"
+                            className="bg-white dark:bg-[var(--soft-surface)] rounded-2xl border border-slate-200 dark:border-[var(--soft-line)] p-6 w-full max-w-md"
                         >
                             <div className="flex items-center justify-between mb-6">
                                 <h2 className="text-lg font-bold text-slate-800 dark:text-white">
@@ -251,7 +251,7 @@ export default function CreatorCoursesPage() {
                                 </h2>
                                 <button
                                     onClick={() => setShowRegisterModal(false)}
-                                    className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-[#1a1a1a] transition-colors"
+                                    className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-[var(--soft-raised)] transition-colors"
                                 >
                                     <AlertCircle className="w-5 h-5 text-slate-500" />
                                 </button>
@@ -279,7 +279,7 @@ export default function CreatorCoursesPage() {
                                                 checkUsernameAvailability(e.target.value);
                                             }}
                                             placeholder="johndoe"
-                                            className="w-full pl-8 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1a1a1a] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                                            className="w-full pl-8 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[var(--soft-raised)] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40"
                                         />
                                     </div>
                                     {usernameAvailable !== null && (
@@ -298,7 +298,7 @@ export default function CreatorCoursesPage() {
                                         value={registerForm.displayName}
                                         onChange={(e) => setRegisterForm({ ...registerForm, displayName: e.target.value })}
                                         placeholder="John Doe"
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1a1a1a] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[var(--soft-raised)] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40"
                                     />
                                 </div>
 
@@ -309,7 +309,7 @@ export default function CreatorCoursesPage() {
                                     <select
                                         value={registerForm.gender}
                                         onChange={(e) => setRegisterForm({ ...registerForm, gender: e.target.value })}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1a1a1a] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[var(--soft-raised)] text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/40"
                                     >
                                         <option value="male">Male</option>
                                         <option value="female">Female</option>
@@ -327,7 +327,7 @@ export default function CreatorCoursesPage() {
                                         onChange={(e) => setRegisterForm({ ...registerForm, bio: e.target.value })}
                                         placeholder="Tell us about yourself..."
                                         rows={3}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[#1a1a1a] text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 resize-none"
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-[var(--soft-raised)] text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40 resize-none"
                                     />
                                 </div>
 
@@ -384,7 +384,7 @@ export default function CreatorCoursesPage() {
                         placeholder="Search your courses..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/40 bg-white dark:bg-[#121212]"
+                        className="w-full pl-12 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/40 bg-white dark:bg-[var(--soft-surface)]"
                     />
                 </div>
             </div>
@@ -402,7 +402,7 @@ export default function CreatorCoursesPage() {
                 </div>
             ) : filteredCourses.length === 0 ? (
                 <div className="text-center py-16">
-                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 dark:bg-[#1a1a1a] flex items-center justify-center">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-100 dark:bg-[var(--soft-raised)] flex items-center justify-center">
                         <BookOpen className="w-8 h-8 text-slate-400" />
                     </div>
                     <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">
@@ -433,9 +433,9 @@ export default function CreatorCoursesPage() {
                                 initial={{ opacity: 0, y: 16 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: idx * 0.05 }}
-                                className="bg-white dark:bg-[#121212] rounded-2xl overflow-hidden border border-slate-200 dark:border-[#2a2a2a] transition-all hover:border-blue-300 dark:hover:border-blue-500/40 hover:shadow-lg"
+                                className="bg-white dark:bg-[var(--soft-surface)] rounded-2xl overflow-hidden border border-slate-200 dark:border-[var(--soft-line)] transition-all hover:border-blue-300 dark:hover:border-blue-500/40 hover:shadow-lg"
                             >
-                                <div className="relative aspect-video bg-slate-900 dark:bg-[#0a0a0a] group overflow-hidden">
+                                <div className="relative aspect-video bg-slate-900 dark:bg-[var(--soft-sunken)] group overflow-hidden">
                                     {firstVideo?.thumbnail_url ? (
                                         <img
                                             src={firstVideo.thumbnail_url}
@@ -478,7 +478,7 @@ export default function CreatorCoursesPage() {
                                         </h3>
                                         <button
                                             onClick={(e) => e.stopPropagation()}
-                                            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[#1a1a1a] text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                                            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-[var(--soft-raised)] text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
                                         >
                                             <MoreVertical className="w-4 h-4" />
                                         </button>

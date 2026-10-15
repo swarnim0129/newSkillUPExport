@@ -89,7 +89,7 @@ export const DesktopSidebar = ({
     return (
         <motion.div
             className={cn(
-                "h-full px-4 py-4 hidden md:flex md:flex-col bg-neutral-100 dark:bg-neutral-800 w-[300px] flex-shrink-0 sticky top-0",
+                "h-full px-4 py-4 hidden md:flex md:flex-col bg-white/55 dark:bg-[rgb(18_24_38/0.55)] backdrop-blur-xl border-r border-white/70 dark:border-white/5 shadow-[6px_0_24px_-12px_rgb(146_162_190/0.45)] dark:shadow-[6px_0_24px_-12px_rgb(0_0_0/0.6)] w-[300px] flex-shrink-0 sticky top-0",
                 className
             )}
             animate={{
@@ -145,7 +145,7 @@ export const MobileSidebar = ({
                                     ease: "easeInOut",
                                 }}
                                 className={cn(
-                                    "fixed top-0 left-0 bottom-0 h-full w-[80vw] sm:w-[320px] bg-white dark:bg-neutral-900 p-6 z-[100] flex flex-col justify-between rounded-r-2xl shadow-2xl",
+                                    "fixed top-0 left-0 bottom-0 h-full w-[80vw] sm:w-[320px] bg-white/80 dark:bg-[rgb(18_24_38/0.85)] backdrop-blur-xl p-6 z-[100] flex flex-col justify-between rounded-r-2xl shadow-2xl",
                                     className
                                 )}
                             >
@@ -168,18 +168,25 @@ export const MobileSidebar = ({
 export const SidebarLink = ({
     link,
     className,
+    active = false,
     ...props
 }: {
     link: Links;
     className?: string;
+    active?: boolean;
     props?: LinkProps;
 }) => {
     const { open, setOpen, animate } = useSidebar();
     return (
         <Link
             href={link.href}
+            // The label is hidden while the sidebar is collapsed; keep a name for screen readers and a tooltip
+            aria-label={link.label}
+            title={open ? undefined : link.label}
+            aria-current={active ? "page" : undefined}
             className={cn(
-                "flex items-center justify-start gap-2 group/sidebar py-2",
+                "flex items-center justify-start gap-2 group/sidebar min-h-9 py-1.5 px-1 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+                active && "bg-blue-50 dark:bg-blue-500/10 [&>svg]:!text-blue-600 dark:[&>svg]:!text-blue-400",
                 className
             )}
             onClick={() => {

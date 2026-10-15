@@ -78,7 +78,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     # OAuth2PasswordRequestForm expects 'username' and 'password'
     user = await db["users"].find_one({"email": form_data.username})
     
-    if not user or not verify_password(form_data.password, user["hashed_password"]):
+    # Accounts created through the sign-in bridge have no password
+    if not user or not user.get("hashed_password") or not verify_password(form_data.password, user["hashed_password"]):
         logger.warning(f"Login failed: Invalid credentials for email - {form_data.username}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

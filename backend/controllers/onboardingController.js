@@ -1,8 +1,5 @@
-const Company = require('../models/Company');
 const Candidate = require('../models/Candidate');
 const User = require('../models/User'); // Admin?
-const cloudinary = require('../config/cloudinary');
-const stream = require('stream');
 
 // @desc    Check onboarding status
 // @route   GET /api/onboarding/check
@@ -14,7 +11,7 @@ exports.checkOnboarding = async (req, res) => {
         
         // If middleware found it by clerkId
         if (req.user && req.user.role !== 'new') {
-            const redirectUrl = req.user.role === 'company' ? '/company/dashboard' : '/candidate/dashboard';
+            const redirectUrl = req.user.role === 'mentor' ? '/mentor' : '/candidate/journey';
             return res.status(200).json({
                 exists: true,
                 role: req.user.role,
@@ -78,6 +75,10 @@ exports.onboardCandidate = async (req, res) => {
         const clerkId = req.clerkId;
         const data = req.body;
 
+        if (req.user && req.user.role === 'mentor') {
+            return res.status(409).json({ message: 'This is a faculty account. Open your classes instead.', redirectUrl: '/mentor' });
+        }
+
         // Check if candidate already exists
         let candidate = await Candidate.findOne({ clerkId });
         if (candidate) {
@@ -106,19 +107,22 @@ exports.onboardCandidate = async (req, res) => {
                     console.warn('Self-referral blocked for clerkId:', clerkId);
                 } else {
                     referredBy = referrer._id;
-                    // Award referrer +10 credits and increment count
-                    await Candidate.findByIdAndUpdate(referrer._id, {
-                        $inc: { credits: 10, referralCount: 1, totalCreditsEarned: 10 }
-                    });
-                    // Referral reward applied
                 }
             } else {
                 console.warn('Invalid referral code provided:', incomingRefCode);
             }
         }
 
-        // Remove referralCode from spread data to avoid conflict with generated one
-        const { referralCode: _, ...candidateData } = data;
+        // Only profile fields may come from the client — never credits, XP or usage flags
+        const allowedFields = [
+            'email', 'firstName', 'lastName', 'phone', 'location',
+            'skills', 'experience', 'education',
+            'resumeUrl', 'linkedIn', 'portfolio', 'jobPreferences'
+        ];
+        const candidateData = {};
+        for (const field of allowedFields) {
+            if (data[field] !== undefined) candidateData[field] = data[field];
+        }
 
         candidate = await Candidate.create({
             clerkId,
@@ -128,100 +132,17 @@ exports.onboardCandidate = async (req, res) => {
             profileComplete: true
         });
 
-        res.status(201).json({
-            success: true,
-            redirectUrl: '/candidate/dashboard',
-            user: candidate
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(400).json({ message: error.message });
-    }
-};
-
-// @desc    Complete onboarding (Company)
-// @route   POST /api/onboarding/company
-// @access  Private
-exports.onboardCompany = async (req, res) => {
-    try {
-        const clerkId = req.clerkId;
-        
-        // Handle potential FormData structure or JSON
-        // When using multer, body fields are in req.body.
-        // If nested fields like contactPerson[name] are sent, we need to restructure.
-        
-        let companyData = { ...req.body };
-        
-        // Reconstruct contactPerson if sent flatten
-        if (req.body['contactPerson[name]']) {
-             companyData.contactPerson = {
-                name: req.body['contactPerson[name]'],
-                designation: req.body['contactPerson[designation]'],
-                phone: req.body['contactPerson[phone]']
-            };
-        } else if (typeof req.body.contactPerson === 'string') {
-             // If sent as JSON string
-             try {
-                companyData.contactPerson = JSON.parse(req.body.contactPerson);
-             } catch(e) {
-                // ignore
-             }
-        }
-
-        // Handle File Upload
-        if (!req.file) {
-            return res.status(400).json({ message: 'Verification document is required' });
-        }
-
-        if (req.file) {
-            const uploadPromise = new Promise((resolve, reject) => {
-                const uploadStream = cloudinary.uploader.upload_stream(
-                    { folder: 'company_documents' },
-                    (error, result) => {
-                        if (error) {
-                            reject(error);
-                        } else {
-                            resolve(result);
-                        }
-                    }
-                );
-                const bufferStream = new stream.PassThrough();
-                bufferStream.end(req.file.buffer);
-                bufferStream.pipe(uploadStream);
+        // Reward the referrer only once the new account really exists
+        if (referredBy) {
+            await Candidate.findByIdAndUpdate(referredBy, {
+                $inc: { credits: 10, referralCount: 1, totalCreditsEarned: 10 }
             });
-
-            try {
-                const result = await uploadPromise;
-                
-                companyData.document = {
-                    url: result.secure_url,
-                    type: req.body.documentType,
-                    number: req.body.documentNumber
-                };
-
-            } catch (uploadError) {
-                console.error("Cloudinary Upload Error:", uploadError);
-                return res.status(500).json({ message: 'Image upload failed' });
-            }
         }
-
-        // Check if exists
-        let company = await Company.findOne({ clerkId });
-        if (company) {
-            return res.status(400).json({ message: 'Company already exists' });
-        }
-
-        company = await Company.create({
-            clerkId,
-            ...companyData,
-            profileComplete: true,
-            status: 'pending' // Default to pending
-        });
 
         res.status(201).json({
             success: true,
-            redirectUrl: '/company/dashboard',
-            user: company
+            redirectUrl: '/candidate/journey',
+            user: candidate
         });
     } catch (error) {
         console.error(error);

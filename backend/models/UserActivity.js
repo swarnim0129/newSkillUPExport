@@ -9,7 +9,7 @@ const userActivitySchema = new mongoose.Schema({
     },
     type: {
         type: String,
-        enum: ['resume_analyzed', 'resume_generated', 'interview_taken', 'application_sent', 'badge_unlocked'],
+        enum: ['resume_analyzed', 'resume_generated', 'interview_taken', 'application_sent', 'badge_unlocked', 'credits_spent'],
         required: true
     },
     metadata: {

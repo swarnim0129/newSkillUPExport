@@ -1,5 +1,6 @@
-import { getGeminiClient } from '@/lib/gemini';
+import { withGeminiFallback } from '@/lib/gemini';
 import { NextRequest, NextResponse } from 'next/server';
+import { getAuth } from '@clerk/nextjs/server';
 
 interface TopicSection {
     title: string;
@@ -11,13 +12,20 @@ interface TopicSection {
 
 export async function POST(req: NextRequest) {
     try {
-        const { message, videoTitle, topic, overallSummary, chapters, history } = await req.json();
+        // These routes spend the server's AI quota, so only signed-in users may call them
+        const { userId } = getAuth(req);
+        if (!userId) {
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        }
 
-        const genAI = getGeminiClient();
-        const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
+        const body = await req.json();
+        const { message, videoTitle, topic, overallSummary, history } = body;
+        // A video without a transcript has no chapters
+        const chapters: TopicSection[] = Array.isArray(body.chapters) ? body.chapters : [];
+
 
         // Build chapters context for the AI
-        const chaptersContext = (chapters as TopicSection[])
+        const chaptersContext = chapters
             .map((ch, i) => {
                 const startMin = Math.floor(ch.start_ms / 60000);
                 const startSec = Math.floor((ch.start_ms % 60000) / 1000);
@@ -25,7 +33,7 @@ export async function POST(req: NextRequest) {
                 const endSec = Math.floor((ch.end_ms % 60000) / 1000);
                 return `Chapter ${i + 1}: "${ch.title}" (${startMin}:${String(startSec).padStart(2, '0')} - ${endMin}:${String(endSec).padStart(2, '0')})
   Summary: ${ch.summary}
-  Keywords: ${ch.keywords.join(', ')}`;
+  Keywords: ${(ch.keywords || []).join(', ')}`;
             })
             .join('\n\n');
 
@@ -51,21 +59,18 @@ INSTRUCTIONS:
             parts: [{ text: msg.content }],
         }));
 
-        const chat = model.startChat({
+        const response = await withGeminiFallback((model) => model.startChat({
             history: [
                 { role: 'user', parts: [{ text: systemPrompt }] },
                 {
                     role: 'model',
                     parts: [{
-                        text: `I'm ready to help you learn from this video about "${topic}"! I have full context of all ${(chapters as TopicSection[]).length} chapters. Ask me anything about the content, or tell me what topic you want to jump to and I'll navigate you there!`,
+                        text: `I'm ready to help you learn from this video about "${topic}"! I have full context of all ${chapters.length} chapters. Ask me anything about the content, or tell me what topic you want to jump to and I'll navigate you there!`,
                     }],
                 },
                 ...chatHistory,
             ],
-        });
-
-        const result = await chat.sendMessage(message);
-        const response = result.response.text();
+        }).sendMessage(message).then((r) => r.response.text()));
 
         // Parse out SEEK commands
         const seekMatch = response.match(/\[SEEK:(\d+)\]/);

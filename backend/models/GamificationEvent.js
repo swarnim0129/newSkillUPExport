@@ -28,6 +28,7 @@ const gamificationEventSchema = new mongoose.Schema(
         'roadmap_saved',
         'roadmap_node_completed',
         'roadmap_completed',
+        'roadmap_adapted',
         'tutor_chapter_completed',
         'quiz_completed',
         'resume_analyzed',
@@ -35,12 +36,13 @@ const gamificationEventSchema = new mongoose.Schema(
         'resume_exported',
         'interview_completed',
         'application_sent',
+        'dsa_solved',
       ],
     },
     source: {
       type: String,
       required: true,
-      enum: ['roadmap', 'tutor', 'resume', 'interview', 'application', 'system'],
+      enum: ['roadmap', 'tutor', 'resume', 'interview', 'application', 'system', 'feedback_loop', 'practice'],
     },
     sourceRef: {
       type: mongoose.Schema.Types.Mixed,

@@ -12,6 +12,7 @@ from auth.router import get_current_user
 from database import db, get_next_sequence
 from gemini_service import gemini_service
 from logger import get_logger
+from url_safety import fetch_public_text
 from resume_analyzer.routes import extract_resume_text, _extract_text_from_gemini_response
 
 
@@ -45,10 +46,7 @@ async def _extract_text_from_url(url: str) -> str:
     - Normalises whitespace
     """
     try:
-        async with httpx.AsyncClient(timeout=20.0) as client:
-            resp = await client.get(url, follow_redirects=True)
-            resp.raise_for_status()
-            html = resp.text
+        html = await fetch_public_text(url)
     except Exception as exc:
         logger.error("Failed to fetch URL %s: %s", url, exc)
         raise HTTPException(status_code=400, detail="Failed to fetch URL content") from exc
@@ -187,6 +185,7 @@ async def generate_flashcard_set(
     pdf: Optional[UploadFile] = File(None),
     num_cards: int = Form(10),
     words_per_card: int = Form(35),
+    current_user: dict = Depends(get_current_user),
 ):
     """
     Generate flashcards from text, URL, or PDF.

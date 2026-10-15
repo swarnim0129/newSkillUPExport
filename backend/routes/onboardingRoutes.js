@@ -1,14 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/authMiddleware');
-const { checkOnboarding, onboardCandidate, onboardCompany } = require('../controllers/onboardingController');
+const { checkOnboarding, onboardCandidate } = require('../controllers/onboardingController');
 const upload = require('../middleware/uploadMiddleware');
 const cloudinary = require('../config/cloudinary');
 const stream = require('stream');
 
 router.get('/check', protect, checkOnboarding);
 router.post('/candidate', protect, onboardCandidate);
-router.post('/company', protect, upload.single('document'), onboardCompany);
 
 // Upload resume PDF to Cloudinary and return URL
 router.post('/upload/resume', protect, upload.single('resume'), async (req, res) => {
